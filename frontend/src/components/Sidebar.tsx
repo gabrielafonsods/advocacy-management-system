@@ -7,6 +7,7 @@ import {
   DocumentTextIcon,
   ClockIcon,
   CurrencyDollarIcon,
+  DocumentDuplicateIcon,
   Cog6ToothIcon,
   ChevronDoubleLeftIcon,
   ChevronDoubleRightIcon,
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Documentos', href: '/documents', icon: DocumentTextIcon },
   { name: 'Prazos', href: '/deadlines', icon: ClockIcon },
   { name: 'Honorarios', href: '/fees', icon: CurrencyDollarIcon },
+  { name: 'Contratos', href: '/contracts', icon: DocumentDuplicateIcon },
   { name: 'Configuracoes', href: '/settings', icon: Cog6ToothIcon },
 ];
 

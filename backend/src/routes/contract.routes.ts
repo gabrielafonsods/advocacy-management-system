@@ -1,10 +1,22 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
+import { authenticate, authorize } from '../middleware/auth';
+import {
+  getContracts,
+  getContract,
+  createContract,
+  updateContract,
+  deleteContract,
+  downloadContractPdf,
+} from '../controllers/contract.controller';
 
 const router = Router();
 router.use(authenticate);
 
-router.get('/', (req, res) => res.json({ status: 'success', data: [] }));
-router.post('/', (req, res) => res.status(201).json({ status: 'success', data: {} }));
+router.get('/', getContracts);
+router.get('/:id', getContract);
+router.get('/:id/pdf', downloadContractPdf);
+router.post('/', createContract);
+router.put('/:id', updateContract);
+router.delete('/:id', authorize('SOCIO', 'ADVOGADO'), deleteContract);
 
 export default router;

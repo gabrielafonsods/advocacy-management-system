@@ -12,6 +12,7 @@ const Calendar = lazy(() => import('./pages/Calendar'));
 const Documents = lazy(() => import('./pages/Documents'));
 const Deadlines = lazy(() => import('./pages/Deadlines'));
 const Fees = lazy(() => import('./pages/Fees'));
+const Contracts = lazy(() => import('./pages/Contracts'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 const RouteFallback = () => (
@@ -39,6 +40,7 @@ function App() {
             <Route path="/documents" element={<Documents />} />
             <Route path="/deadlines" element={<Deadlines />} />
             <Route path="/fees" element={<Fees />} />
+            <Route path="/contracts" element={<Contracts />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
 

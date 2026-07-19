@@ -1,10 +1,22 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth';
+import {
+  getTemplates,
+  getTemplate,
+  createTemplate,
+  updateTemplate,
+  deleteTemplate,
+  generateFromTemplate,
+} from '../controllers/template.controller';
 
 const router = Router();
 router.use(authenticate);
 
-router.get('/', (req, res) => res.json({ status: 'success', data: [] }));
-router.post('/', (req, res) => res.status(201).json({ status: 'success', data: {} }));
+router.get('/', getTemplates);
+router.get('/:id', getTemplate);
+router.post('/', createTemplate);
+router.put('/:id', updateTemplate);
+router.delete('/:id', deleteTemplate);
+router.post('/:id/generate', generateFromTemplate);
 
 export default router;

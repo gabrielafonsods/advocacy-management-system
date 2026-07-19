@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import api from '../lib/axios';
-import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
+import { MagnifyingGlassIcon, FunnelIcon, DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const statusColors: Record<string, string> = {
   EM_ANDAMENTO: 'bg-blue-100 text-blue-800',
@@ -35,6 +36,13 @@ export default function Cases() {
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedCase, setSelectedCase] = useState<any>(null);
+  const [showProcuracaoModal, setShowProcuracaoModal] = useState(false);
+  const [procuracaoForm, setProcuracaoForm] = useState({
+    NACIONALIDADE: 'brasileiro(a)',
+    ESTADO_CIVIL: '',
+    PROFISSAO: '',
+    RG: '',
+  });
 
   const { data: casesData, isLoading } = useQuery({
     queryKey: ['cases'],
@@ -55,6 +63,40 @@ export default function Cases() {
     const matchesType = !filterType || caso.type === filterType;
     const matchesStatus = !filterStatus || caso.status === filterStatus;
     return matchesSearch && matchesType && matchesStatus;
+  });
+
+  const generateProcuracaoMutation = useMutation({
+    mutationFn: async () => {
+      const templatesRes = await api.get('/templates?category=PROCURACAO');
+      const templates = templatesRes.data.data || [];
+      if (!templates.length) {
+        throw new Error('Nenhum template de procuracao cadastrado ainda.');
+      }
+      const template = templates[0];
+
+      const response = await api.post(
+        `/templates/${template.id}/generate`,
+        { caseId: selectedCase.id, variables: procuracaoForm },
+        { responseType: 'blob' }
+      );
+      return response.data;
+    },
+    onSuccess: (blobData) => {
+      const blob = new Blob([blobData], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `procuracao-${selectedCase?.caseNumber || 'processo'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Procuracao gerada com sucesso');
+      setShowProcuracaoModal(false);
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error?.message || 'Erro ao gerar procuracao');
+    },
   });
 
   return (
@@ -242,10 +284,94 @@ export default function Cases() {
 
               <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
                 <button
+                  onClick={() => setShowProcuracaoModal(true)}
+                  className="btn btn-primary flex items-center gap-2"
+                >
+                  <DocumentTextIcon className="h-5 w-5" />
+                  Gerar Procuracao
+                </button>
+                <button
                   onClick={() => setSelectedCase(null)}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                 >
                   Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showProcuracaoModal && selectedCase && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-dark-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-lg font-bold text-dark-900 dark:text-gray-100">Gerar Procuracao</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Cliente e advogado sao preenchidos automaticamente. Complete os dados abaixo.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowProcuracaoModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                  title="Fechar"
+                  aria-label="Fechar"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Nacionalidade</label>
+                  <input
+                    className="input-field mt-1"
+                    value={procuracaoForm.NACIONALIDADE}
+                    onChange={(e) => setProcuracaoForm({ ...procuracaoForm, NACIONALIDADE: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Estado civil</label>
+                  <input
+                    className="input-field mt-1"
+                    value={procuracaoForm.ESTADO_CIVIL}
+                    onChange={(e) => setProcuracaoForm({ ...procuracaoForm, ESTADO_CIVIL: e.target.value })}
+                    placeholder="solteiro(a), casado(a)..."
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Profissao</label>
+                  <input
+                    className="input-field mt-1"
+                    value={procuracaoForm.PROFISSAO}
+                    onChange={(e) => setProcuracaoForm({ ...procuracaoForm, PROFISSAO: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">RG</label>
+                  <input
+                    className="input-field mt-1"
+                    value={procuracaoForm.RG}
+                    onChange={(e) => setProcuracaoForm({ ...procuracaoForm, RG: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-dark-700">
+                <button
+                  onClick={() => setShowProcuracaoModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => generateProcuracaoMutation.mutate()}
+                  disabled={generateProcuracaoMutation.isPending}
+                  className="btn btn-primary disabled:opacity-50"
+                >
+                  {generateProcuracaoMutation.isPending ? 'Gerando...' : 'Gerar PDF'}
                 </button>
               </div>
             </div>
