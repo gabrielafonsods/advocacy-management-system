@@ -31,7 +31,7 @@ export function generateContractPdf(data: ContractPdfData): Promise<Buffer> {
     const doc = new PDFDocument({ margin: 60, size: 'A4' });
     const chunks: Buffer[] = [];
 
-    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
@@ -98,7 +98,7 @@ export function generateTemplatePdf(title: string, content: string): Promise<Buf
     const doc = new PDFDocument({ margin: 60, size: 'A4' });
     const chunks: Buffer[] = [];
 
-    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
