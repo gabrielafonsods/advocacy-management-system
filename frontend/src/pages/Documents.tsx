@@ -35,8 +35,8 @@ interface CaseItem {
 }
 
 const typeLabels: Record<DocumentItem['type'], string> = {
-  PETICAO: 'Peticao',
-  PROCURACAO: 'Procuracao',
+  PETICAO: 'Petição',
+  PROCURACAO: 'Procuração',
   CONTRATO: 'Contrato',
   ATA: 'Ata',
   PARECER: 'Parecer',
@@ -103,7 +103,7 @@ export default function Documents() {
     mutationFn: (id: string) => api.delete(`/documents/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
-      toast.success('Documento excluido com sucesso');
+      toast.success('Documento excluído com sucesso');
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Erro ao excluir documento');
@@ -119,12 +119,12 @@ export default function Documents() {
     }
 
     if (!isPdfFile(uploadFile)) {
-      toast.error('Somente arquivos PDF sao permitidos');
+      toast.error('Somente arquivos PDF são permitidos');
       return;
     }
 
     if (uploadFile.size > MAX_PDF_SIZE_BYTES) {
-      toast.error('O arquivo deve ter no maximo 10MB');
+      toast.error('O arquivo deve ter no máximo 10MB');
       return;
     }
 
@@ -193,7 +193,7 @@ export default function Documents() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Documentos</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Upload funcional com validacao PDF obrigatoria</p>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Upload funcional com validação PDF obrigatória</p>
         </div>
         <button
           onClick={() => setIsUploadModalOpen(true)}
@@ -245,7 +245,7 @@ export default function Documents() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-dark-900 dark:text-gray-100 truncate">{doc.title}</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{doc.description || 'Sem descricao'}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{doc.description || 'Sem descrição'}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
                       {typeLabels[doc.type]}
@@ -318,7 +318,7 @@ export default function Documents() {
               <form onSubmit={handleUpload} className="space-y-4">
                 <div>
                   <label htmlFor="doc-title" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    Titulo *
+                    Título *
                   </label>
                   <input
                     id="doc-title"
@@ -332,7 +332,7 @@ export default function Documents() {
 
                 <div>
                   <label htmlFor="doc-description" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    Descricao
+                    Descrição
                   </label>
                   <textarea
                     id="doc-description"
@@ -400,7 +400,7 @@ export default function Documents() {
                           />
                         </label>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Somente PDF, tamanho maximo 10MB</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Somente PDF, tamanho máximo 10MB</p>
                       {uploadFile && (
                         <p className="text-sm text-emerald-600 dark:text-emerald-300 font-medium mt-2">
                           Arquivo: {uploadFile.name}

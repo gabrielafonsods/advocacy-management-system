@@ -4,8 +4,6 @@ import {
   BellIcon,
   UserCircleIcon,
   TrashIcon,
-  MoonIcon,
-  SunIcon,
   Bars3Icon,
 } from '@heroicons/react/24/outline';
 import { useAuthStore } from '../store/authStore';
@@ -31,8 +29,6 @@ export default function Header() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const theme = useUIStore((state) => state.theme);
-  const toggleTheme = useUIStore((state) => state.toggleTheme);
   const toggleSidebar = useUIStore((state) => state.toggleSidebar);
   const [profileImageError, setProfileImageError] = useState(false);
 
@@ -146,19 +142,6 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg border border-gray-200 dark:border-dark-600 hover:bg-gray-100 dark:hover:bg-dark-700"
-            title={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
-            aria-label={theme === 'dark' ? 'Ativar modo claro' : 'Ativar modo escuro'}
-          >
-            {theme === 'dark' ? (
-              <SunIcon className="h-5 w-5 text-yellow-400" />
-            ) : (
-              <MoonIcon className="h-5 w-5 text-gray-700" />
-            )}
-          </button>
-
           <Menu as="div" className="relative">
             <Menu.Button
               className="relative p-2 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg transition"

@@ -16,15 +16,15 @@ import { useUIStore } from '../store/uiStore';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'Clientes', href: '/clients', icon: UsersIcon },
-  { name: 'Processos', href: '/cases', icon: BriefcaseIcon },
-  { name: 'Agenda', href: '/calendar', icon: CalendarIcon },
-  { name: 'Documentos', href: '/documents', icon: DocumentTextIcon },
-  { name: 'Prazos', href: '/deadlines', icon: ClockIcon },
-  { name: 'Honorarios', href: '/fees', icon: CurrencyDollarIcon },
+  { name: 'Clientes', href: '/clientes', icon: UsersIcon },
+  { name: 'Processos', href: '/processos', icon: BriefcaseIcon },
+  { name: 'Agenda', href: '/agenda', icon: CalendarIcon },
+  { name: 'Documentos', href: '/documentos', icon: DocumentTextIcon },
+  { name: 'Prazos', href: '/prazos', icon: ClockIcon },
+  { name: 'Honorários', href: '/honorarios', icon: CurrencyDollarIcon },
   { name: 'Contratos', href: '/contracts', icon: DocumentDuplicateIcon },
-  { name: 'Configuracoes', href: '/settings', icon: Cog6ToothIcon },
-];
+  { name: 'Configurações', href: '/settings', icon: Cog6ToothIcon },
+  ];
 
 export default function Sidebar() {
   const location = useLocation();

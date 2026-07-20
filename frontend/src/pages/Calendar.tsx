@@ -12,7 +12,6 @@ import {
   TrashIcon,
   PencilSquareIcon,
   ArrowTopRightOnSquareIcon,
-  ArrowDownTrayIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
 
@@ -47,10 +46,10 @@ interface AppointmentForm {
 }
 
 const TYPE_LABELS: Record<AppointmentType, string> = {
-  AUDIENCIA: 'Audiencia',
-  REUNIAO: 'Reuniao',
+  AUDIENCIA: 'Audiência',
+  REUNIAO: 'Reunião',
   ATENDIMENTO: 'Atendimento',
-  DILIGENCIA: 'Diligencia',
+  DILIGENCIA: 'Diligência',
 };
 
 const BR_DATE_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/;
@@ -89,7 +88,7 @@ const getAppointmentState = (appointment: Appointment) => {
   const end = new Date(appointment.endDateTime);
 
   if (now > end) {
-    return { label: 'Concluido', style: 'bg-gray-200 text-gray-800 dark:bg-dark-600 dark:text-gray-100' };
+    return { label: 'Concluído', style: 'bg-gray-200 text-gray-800 dark:bg-dark-600 dark:text-gray-100' };
   }
 
   if (now >= start && now <= end) {
@@ -213,7 +212,7 @@ export default function Calendar() {
     }
 
     if (compareTime(data.startTime, data.endTime) <= 0) {
-      toast.error('Horario final deve ser maior que horario inicial');
+      toast.error('Horário final deve ser maior que horário inicial');
       return;
     }
 
@@ -233,21 +232,6 @@ export default function Calendar() {
 
   const handleGoogleOpen = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleIcsDownload = async (appointment: Appointment) => {
-    try {
-      const response = await api.get(`/appointments/${appointment.id}/ics`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/calendar' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `compromisso-${appointment.id}.ics`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-      toast.success('Arquivo ICS baixado');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao baixar arquivo ICS');
-    }
   };
 
   const now = new Date();
@@ -274,9 +258,6 @@ export default function Calendar() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Agenda</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Data no padrao DIA/MES/ANO e integracao com Google Agenda (web, iOS e Android)
-          </p>
         </div>
         <button onClick={openCreateModal} className="btn btn-primary inline-flex items-center gap-2">
           <PlusIcon className="h-5 w-5" />
@@ -297,7 +278,7 @@ export default function Calendar() {
         <div className="card bg-gradient-to-br from-emerald-600 to-teal-600 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-emerald-100">Proximos</p>
+              <p className="text-emerald-100">Próximos</p>
               <p className="text-3xl font-bold mt-2">{upcomingAppointments.length}</p>
             </div>
             <ClockIcon className="h-12 w-12 text-emerald-100" />
@@ -306,7 +287,7 @@ export default function Calendar() {
         <div className="card bg-gradient-to-br from-indigo-600 to-blue-700 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-indigo-100">Total do mes</p>
+              <p className="text-indigo-100">Total do mês</p>
               <p className="text-3xl font-bold mt-2">{monthAppointments.length}</p>
             </div>
             <UserGroupIcon className="h-12 w-12 text-indigo-100" />
@@ -367,14 +348,6 @@ export default function Calendar() {
                         Google
                       </button>
                       <button
-                        onClick={() => handleIcsDownload(appointment)}
-                        className="btn btn-secondary inline-flex items-center gap-1.5 text-sm"
-                        title="Baixar arquivo ICS"
-                      >
-                        <ArrowDownTrayIcon className="h-4 w-4" />
-                        ICS
-                      </button>
-                      <button
                         onClick={() => openEditModal(appointment)}
                         className="btn btn-secondary inline-flex items-center gap-1.5 text-sm"
                       >
@@ -418,21 +391,21 @@ export default function Calendar() {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                   <label htmlFor="appointment-title" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    Titulo *
+                    Título *
                   </label>
                   <input
-                    {...register('title', { required: 'Titulo obrigatorio' })}
+                    {...register('title', { required: 'Título obrigatório' })}
                     id="appointment-title"
                     type="text"
                     className="input-field"
-                    placeholder="Ex: Reuniao com cliente"
+                    placeholder="Ex: Reunião com cliente"
                   />
                   {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
                 </div>
 
                 <div>
                   <label htmlFor="appointment-description" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    Descricao
+                    Descrição
                   </label>
                   <textarea
                     {...register('description')}
@@ -450,7 +423,7 @@ export default function Calendar() {
                     </label>
                     <input
                       {...register('date', {
-                        required: 'Data obrigatoria',
+                        required: 'Data obrigatória',
                         pattern: {
                           value: BR_DATE_REGEX,
                           message: 'Use o formato DD/MM/AAAA',
@@ -470,14 +443,14 @@ export default function Calendar() {
                       Tipo *
                     </label>
                     <select
-                      {...register('type', { required: 'Tipo obrigatorio' })}
+                      {...register('type', { required: 'Tipo obrigatório' })}
                       id="appointment-type"
                       className="input-field"
                     >
-                      <option value="REUNIAO">Reuniao</option>
-                      <option value="AUDIENCIA">Audiencia</option>
+                      <option value="REUNIAO">Reunião</option>
+                      <option value="AUDIENCIA">Audiência</option>
                       <option value="ATENDIMENTO">Atendimento</option>
-                      <option value="DILIGENCIA">Diligencia</option>
+                      <option value="DILIGENCIA">Diligência</option>
                     </select>
                   </div>
                 </div>
@@ -485,10 +458,10 @@ export default function Calendar() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="appointment-start-time" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                      Inicio *
+                      Início *
                     </label>
                     <input
-                      {...register('startTime', { required: 'Horario de inicio obrigatorio' })}
+                      {...register('startTime', { required: 'Horário de início obrigatório' })}
                       id="appointment-start-time"
                       type="time"
                       className="input-field"
@@ -500,7 +473,7 @@ export default function Calendar() {
                       Fim *
                     </label>
                     <input
-                      {...register('endTime', { required: 'Horario de fim obrigatorio' })}
+                      {...register('endTime', { required: 'Horário de fim obrigatório' })}
                       id="appointment-end-time"
                       type="time"
                       className="input-field"
@@ -519,7 +492,7 @@ export default function Calendar() {
                       id="appointment-location"
                       type="text"
                       className="input-field"
-                      placeholder="Sala, Forum ou link da reuniao"
+                      placeholder="Sala, Fórum ou link da reunião"
                     />
                   </div>
                   <div>
@@ -531,7 +504,7 @@ export default function Calendar() {
                       id="appointment-participants"
                       type="text"
                       className="input-field"
-                      placeholder="Nomes separados por virgula"
+                      placeholder="Nomes separados por vírgula"
                     />
                   </div>
                 </div>

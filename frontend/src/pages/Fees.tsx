@@ -70,10 +70,10 @@ const statusLabels: Record<Fee['status'], string> = {
 };
 
 const typeLabels: Record<string, string> = {
-  HONORARIO: 'Honorario',
+  HONORARIO: 'Honorário',
   CUSTAS: 'Custas processuais',
-  PERICIA: 'Pericia',
-  PUBLICACAO: 'Publicacao',
+  PERICIA: 'Perícia',
+  PUBLICACAO: 'Publicação',
   OUTROS: 'Outros',
 };
 
@@ -136,10 +136,10 @@ export default function Fees() {
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['fees-chart-data'] });
       queryClient.invalidateQueries({ queryKey: ['fee-stats'] });
-      toast.success('Honorario criado com sucesso');
+      toast.success('Honorário criado com sucesso');
       closeModal();
     },
-    onError: (error: any) => toast.error(error.response?.data?.message || 'Erro ao criar honorario'),
+    onError: (error: any) => toast.error(error.response?.data?.message || 'Erro ao criar honorário'),
   });
 
   const updateMutation = useMutation({
@@ -148,10 +148,10 @@ export default function Fees() {
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['fees-chart-data'] });
       queryClient.invalidateQueries({ queryKey: ['fee-stats'] });
-      toast.success('Honorario atualizado com sucesso');
+      toast.success('Honorário atualizado com sucesso');
       closeModal();
     },
-    onError: (error: any) => toast.error(error.response?.data?.message || 'Erro ao atualizar honorario'),
+    onError: (error: any) => toast.error(error.response?.data?.message || 'Erro ao atualizar honorário'),
   });
 
   const deleteMutation = useMutation({
@@ -160,9 +160,9 @@ export default function Fees() {
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['fees-chart-data'] });
       queryClient.invalidateQueries({ queryKey: ['fee-stats'] });
-      toast.success('Honorario excluido com sucesso');
+      toast.success('Honorário excluído com sucesso');
     },
-    onError: (error: any) => toast.error(error.response?.data?.message || 'Erro ao excluir honorario'),
+    onError: (error: any) => toast.error(error.response?.data?.message || 'Erro ao excluir honorário'),
   });
 
   const markAsPaidMutation = useMutation({
@@ -175,7 +175,7 @@ export default function Fees() {
       queryClient.invalidateQueries({ queryKey: ['fees'] });
       queryClient.invalidateQueries({ queryKey: ['fees-chart-data'] });
       queryClient.invalidateQueries({ queryKey: ['fee-stats'] });
-      toast.success('Honorario marcado como pago');
+      toast.success('Honorário marcado como pago');
     },
     onError: (error: any) => toast.error(error.response?.data?.message || 'Erro ao marcar como pago'),
   });
@@ -184,7 +184,7 @@ export default function Fees() {
     event.preventDefault();
 
     if (!formData.description || !formData.amount || !formData.dueDate || !formData.caseId) {
-      toast.error('Preencha os campos obrigatorios');
+      toast.error('Preencha os campos obrigatórios');
       return;
     }
 
@@ -213,7 +213,7 @@ export default function Fees() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este honorario?')) {
+    if (window.confirm('Tem certeza que deseja excluir este honorário?')) {
       deleteMutation.mutate(id);
     }
   };
@@ -372,15 +372,15 @@ export default function Fees() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Honorarios</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Visualize e gerencie honorarios por status e por periodo</p>
+          <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Honorários</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Visualize e gerencie honorários por status e por período</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
           className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
         >
           <PlusIcon className="h-5 w-5" />
-          Novo honorario
+          Novo honorário
         </button>
       </div>
 
@@ -423,7 +423,7 @@ export default function Fees() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="card xl:col-span-2">
-          <h2 className="text-lg font-semibold text-dark-900 dark:text-gray-100 mb-4">Evolucao por mes</h2>
+          <h2 className="text-lg font-semibold text-dark-900 dark:text-gray-100 mb-4">Evolução por mês</h2>
           <div className="h-72">
             <Line data={lineData} options={lineOptions} />
           </div>
@@ -431,7 +431,7 @@ export default function Fees() {
         <div className="card">
           <h2 className="text-lg font-semibold text-dark-900 dark:text-gray-100 mb-4 flex items-center gap-2">
             <ChartPieIcon className="h-5 w-5" />
-            Distribuicao por status
+            Distribuição por status
           </h2>
           <div className="h-72">
             <Pie data={pieData} options={pieOptions} />
@@ -470,10 +470,10 @@ export default function Fees() {
               className="input-field"
             >
               <option value="">Todos os tipos</option>
-              <option value="HONORARIO">Honorario</option>
+              <option value="HONORARIO">Honorário</option>
               <option value="CUSTAS">Custas</option>
-              <option value="PERICIA">Pericia</option>
-              <option value="PUBLICACAO">Publicacao</option>
+              <option value="PERICIA">Perícia</option>
+              <option value="PUBLICACAO">Publicação</option>
               <option value="OUTROS">Outros</option>
             </select>
           </div>
@@ -489,7 +489,7 @@ export default function Fees() {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Descricao
+                  Descrição
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Processo / Cliente
@@ -504,7 +504,7 @@ export default function Fees() {
                   Vencimento
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Acoes
+                  Ações
                 </th>
               </tr>
             </thead>
@@ -565,7 +565,7 @@ export default function Fees() {
               ) : (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-300">
-                    Nenhum honorario encontrado
+                    Nenhum honorário encontrado
                   </td>
                 </tr>
               )}
@@ -580,7 +580,7 @@ export default function Fees() {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-dark-900 dark:text-gray-100">
-                  {editingFee ? 'Editar honorario' : 'Novo honorario'}
+                  {editingFee ? 'Editar honorário' : 'Novo honorário'}
                 </h2>
                 <button
                   onClick={closeModal}
@@ -595,7 +595,7 @@ export default function Fees() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="fee-description" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                    Descricao *
+                    Descrição *
                   </label>
                   <input
                     id="fee-description"
@@ -651,10 +651,10 @@ export default function Fees() {
                       className="input-field"
                       required
                     >
-                      <option value="HONORARIO">Honorario</option>
+                      <option value="HONORARIO">Honorário</option>
                       <option value="CUSTAS">Custas</option>
-                      <option value="PERICIA">Pericia</option>
-                      <option value="PUBLICACAO">Publicacao</option>
+                      <option value="PERICIA">Perícia</option>
+                      <option value="PUBLICACAO">Publicação</option>
                       <option value="OUTROS">Outros</option>
                     </select>
                   </div>

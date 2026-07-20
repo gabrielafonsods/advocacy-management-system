@@ -54,8 +54,9 @@ export default function Deadlines() {
       if (filterPriority) params.append('priority', filterPriority);
       if (filterStatus) params.append('status', filterStatus);
       
+      params.append('limit', '200');
       const response = await api.get(`/deadlines?${params.toString()}`);
-      return response.data.data || [];
+      return response.data.data?.deadlines || [];
     }
   });
 
@@ -170,14 +171,14 @@ export default function Deadlines() {
   };
 
   const getUrgencyColor = (deadline: Deadline) => {
-    if (deadline.status === 'CONCLUIDO') return 'border-green-300 bg-green-50';
-    if (deadline.status === 'ATRASADO') return 'border-red-300 bg-red-50';
+    if (deadline.status === 'CONCLUIDO') return 'border-green-700 bg-green-900/20';
+    if (deadline.status === 'ATRASADO') return 'border-red-700 bg-red-900/20';
     
     const days = getDaysUntilDeadline(deadline.dueDate);
-    if (days < 0) return 'border-red-300 bg-red-50';
-    if (days <= 3) return 'border-orange-300 bg-orange-50';
-    if (days <= 7) return 'border-yellow-300 bg-yellow-50';
-    return 'border-gray-200 bg-white';
+    if (days < 0) return 'border-red-700 bg-red-900/20';
+    if (days <= 3) return 'border-orange-700 bg-orange-900/20';
+    if (days <= 7) return 'border-yellow-700 bg-yellow-900/20';
+    return 'border-dark-600 bg-dark-800';
   };
 
   const filteredDeadlines = deadlines;
@@ -221,7 +222,7 @@ export default function Deadlines() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Prazos Judiciais</h1>
-          <p className="text-gray-600 mt-1">Controle rigoroso dos prazos processuais</p>
+          <p className="text-gray-400 mt-1">Controle rigoroso dos prazos processuais</p>
         </div>
         <button onClick={openCreateModal} className="btn btn-primary">
           <PlusIcon className="h-5 w-5 mr-2" />
@@ -266,7 +267,7 @@ export default function Deadlines() {
       <div className="card">
         <div className="flex gap-4">
           <div className="flex-1">
-            <label htmlFor="filter-priority" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="filter-priority" className="block text-sm font-medium text-gray-200 mb-2">
               Filtrar por Prioridade
             </label>
             <select
@@ -283,7 +284,7 @@ export default function Deadlines() {
             </select>
           </div>
           <div className="flex-1">
-            <label htmlFor="filter-status" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="filter-status" className="block text-sm font-medium text-gray-200 mb-2">
               Filtrar por Status
             </label>
             <select
@@ -307,7 +308,7 @@ export default function Deadlines() {
         {filteredDeadlines.length === 0 ? (
           <div className="text-center py-12">
             <ClockIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Nenhum prazo cadastrado</p>
+            <p className="text-gray-400">Nenhum prazo cadastrado</p>
             <button onClick={openCreateModal} className="btn btn-primary mt-4">
               Cadastrar Primeiro Prazo
             </button>
@@ -324,11 +325,11 @@ export default function Deadlines() {
                   className={`flex items-center justify-between p-4 border-2 rounded-lg ${getUrgencyColor(deadline)}`}
                 >
                   <div className="flex items-start gap-4 flex-1">
-                    <div className="flex flex-col items-center bg-white rounded-lg px-3 py-2 min-w-[90px] border border-gray-200">
+                    <div className="flex flex-col items-center bg-dark-700 rounded-lg px-3 py-2 min-w-[90px] border border-dark-600">
                       <span className="text-2xl font-bold text-dark-900 dark:text-gray-100">
                         {new Date(deadline.dueDate).getDate()}
                       </span>
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-gray-400">
                         {new Date(deadline.dueDate).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
                       </span>
                       {deadline.status === 'PENDENTE' && (
@@ -353,7 +354,7 @@ export default function Deadlines() {
                         )}
                       </div>
                       {deadline.description && (
-                        <p className="text-sm text-gray-600 mt-1">{deadline.description}</p>
+                        <p className="text-sm text-gray-400 mt-1">{deadline.description}</p>
                       )}
                       {deadline.case && (
                         <div className="mt-2 text-sm text-primary-600">
@@ -385,14 +386,14 @@ export default function Deadlines() {
                     <button
                       onClick={() => openEditModal(deadline)}
                       title="Editar"
-                      className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                      className="p-2 text-gray-300 hover:bg-dark-700 rounded-lg"
                     >
                       <PencilIcon className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => handleDelete(deadline.id)}
                       title="Excluir"
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      className="p-2 text-red-500 hover:bg-red-900/30 rounded-lg"
                     >
                       <TrashIcon className="h-5 w-5" />
                     </button>
@@ -407,7 +408,7 @@ export default function Deadlines() {
       {/* Modal de Criação/Edição */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+          <div className="bg-dark-800 rounded-lg shadow-xl max-w-2xl w-full border border-dark-600">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-dark-900 dark:text-gray-100">
@@ -421,7 +422,7 @@ export default function Deadlines() {
                   }}
                   title="Fechar"
                   aria-label="Fechar modal"
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-400 hover:text-gray-200"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
@@ -429,7 +430,7 @@ export default function Deadlines() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label htmlFor="deadline-title" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="deadline-title" className="block text-sm font-medium text-gray-200 mb-1">
                     Título do Prazo *
                   </label>
                   <input
@@ -444,7 +445,7 @@ export default function Deadlines() {
                 </div>
 
                 <div>
-                  <label htmlFor="deadline-description" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="deadline-description" className="block text-sm font-medium text-gray-200 mb-1">
                     Descrição
                   </label>
                   <textarea
@@ -458,7 +459,7 @@ export default function Deadlines() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="deadline-date" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="deadline-date" className="block text-sm font-medium text-gray-200 mb-1">
                       Data do Vencimento *
                     </label>
                     <input
@@ -473,7 +474,7 @@ export default function Deadlines() {
                   </div>
 
                   <div>
-                    <label htmlFor="deadline-priority" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="deadline-priority" className="block text-sm font-medium text-gray-200 mb-1">
                       Prioridade *
                     </label>
                     <select
@@ -490,7 +491,7 @@ export default function Deadlines() {
                 </div>
 
                 <div>
-                  <label htmlFor="deadline-case" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="deadline-case" className="block text-sm font-medium text-gray-200 mb-1">
                     Vincular a Processo (opcional)
                   </label>
                   <select
@@ -515,7 +516,7 @@ export default function Deadlines() {
                       setSelectedDeadline(null);
                       reset();
                     }}
-                    className="btn bg-gray-200 text-gray-700 hover:bg-gray-300 flex-1"
+                    className="btn bg-dark-700 text-gray-200 hover:bg-dark-600 flex-1"
                   >
                     Cancelar
                   </button>

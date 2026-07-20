@@ -32,13 +32,13 @@ function App() {
 
           <Route element={isAuthenticated ? <Layout /> : <Navigate to="/login" />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/cases" element={<Cases />} />
-            <Route path="/cases/:id" element={<CaseDetail />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/deadlines" element={<Deadlines />} />
-            <Route path="/fees" element={<Fees />} />
+            <Route path="/clientes" element={<Clients />} />
+            <Route path="/processos" element={<Cases />} />
+            <Route path="/processos/:id" element={<CaseDetail />} />
+            <Route path="/agenda" element={<Calendar />} />
+            <Route path="/documentos" element={<Documents />} />
+            <Route path="/prazos" element={<Deadlines />} />
+            <Route path="/honorarios" element={<Fees />} />
             <Route path="/contracts" element={<Contracts />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

@@ -110,7 +110,7 @@ export default function Clients() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Clientes</h1>
-          <p className="text-gray-600 mt-1">Gerencie seus clientes</p>
+          <p className="text-gray-400 mt-1">Gerencie seus clientes</p>
         </div>
         <button onClick={openCreateModal} className="btn btn-primary">+ Novo Cliente</button>
       </div>
@@ -120,21 +120,21 @@ export default function Clients() {
           {isLoading ? (
             <div className="text-center py-8">Carregando...</div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-dark-700">
+              <thead className="bg-dark-900/60">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">CPF/CNPJ</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telefone</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Nome</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Tipo</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">CPF/CNPJ</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Telefone</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase">Ações</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-dark-700">
                 {clients?.map((client: any) => (
-                  <tr key={client.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{client.name}</td>
+                  <tr key={client.id} className="hover:bg-dark-700/40">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">{client.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                         client.type === 'PESSOA_FISICA' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
@@ -142,9 +142,9 @@ export default function Clients() {
                         {client.type === 'PESSOA_FISICA' ? 'PF' : 'PJ'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.cpfCnpj}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.phone}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{client.cpfCnpj}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{client.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{client.phone}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
                         onClick={() => setViewClient(client)}
@@ -158,7 +158,7 @@ export default function Clients() {
                         onClick={() => openEditModal(client)}
                         title="Editar cliente"
                         aria-label={`Editar ${client.name}`}
-                        className="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1"
+                        className="text-gray-300 hover:text-gray-100 inline-flex items-center gap-1"
                       >
                         <PencilIcon className="h-4 w-4" /> Editar
                       </button>
@@ -182,7 +182,7 @@ export default function Clients() {
       {/* Modal de Criação/Edição */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-dark-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-dark-600">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold text-dark-900 dark:text-gray-100">
@@ -192,7 +192,7 @@ export default function Clients() {
                   onClick={() => setIsModalOpen(false)} 
                   title="Fechar"
                   aria-label="Fechar modal"
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-400 hover:text-gray-200"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>
@@ -201,20 +201,20 @@ export default function Clients() {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Nome *</label>
                     <input
                       type="text"
                       {...register('name', { required: 'Nome é obrigatório' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                     {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Tipo *</label>
                     <select
                       {...register('type', { required: true })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     >
                       <option value="PESSOA_FISICA">Pessoa Física</option>
                       <option value="PESSOA_JURIDICA">Pessoa Jurídica</option>
@@ -222,69 +222,69 @@ export default function Clients() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ *</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">CPF/CNPJ *</label>
                     <input
                       type="text"
                       {...register('cpfCnpj', { required: 'CPF/CNPJ é obrigatório' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                     {errors.cpfCnpj && <p className="text-red-600 text-sm mt-1">{errors.cpfCnpj.message}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Email *</label>
                     <input
                       type="email"
                       {...register('email', { required: 'Email é obrigatório' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                     {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefone *</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Telefone *</label>
                     <input
                       type="tel"
                       {...register('phone', { required: 'Telefone é obrigatório' })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                     {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone.message}</p>}
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Endereço</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Endereço</label>
                     <input
                       type="text"
                       {...register('address')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Cidade</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Cidade</label>
                     <input
                       type="text"
                       {...register('city')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Estado</label>
                     <input
                       type="text"
                       {...register('state')}
                       maxLength={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                   </div>
 
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">CEP</label>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">CEP</label>
                     <input
                       type="text"
                       {...register('zipCode')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-field"
                     />
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export default function Clients() {
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 border border-dark-600 rounded-lg text-gray-200 hover:bg-dark-700"
                   >
                     Cancelar
                   </button>
@@ -314,7 +314,7 @@ export default function Clients() {
       {/* Modal de Visualização */}
       {viewClient && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+          <div className="bg-dark-800 rounded-lg shadow-xl max-w-2xl w-full border border-dark-600">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold text-dark-900 dark:text-gray-100">Detalhes do Cliente</h2>
@@ -322,7 +322,7 @@ export default function Clients() {
                   onClick={() => setViewClient(null)} 
                   title="Fechar"
                   aria-label="Fechar detalhes"
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-400 hover:text-gray-200"
                 >
                   <XMarkIcon className="h-6 w-6" />
                 </button>

@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
 import { toast } from 'react-hot-toast';
-import { MagnifyingGlassIcon, FunnelIcon, DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, FunnelIcon, DocumentTextIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const statusColors: Record<string, string> = {
-  EM_ANDAMENTO: 'bg-blue-100 text-blue-800',
-  CONCLUIDO: 'bg-green-100 text-green-800',
-  ARQUIVADO: 'bg-gray-100 text-gray-800',
+  ATIVO: 'bg-blue-100 text-blue-800',
+  ENCERRADO: 'bg-green-100 text-green-800',
+  ARQUIVADO: 'bg-gray-200 text-gray-800',
   SUSPENSO: 'bg-yellow-100 text-yellow-800',
 };
 
 const statusLabels: Record<string, string> = {
-  EM_ANDAMENTO: 'Em Andamento',
-  CONCLUIDO: 'ConcluÌdo',
+  ATIVO: 'Ativo',
+  ENCERRADO: 'Encerrado',
   ARQUIVADO: 'Arquivado',
   SUSPENSO: 'Suspenso',
 };
@@ -22,14 +22,18 @@ const typeLabels: Record<string, string> = {
   TRABALHISTA: 'Trabalhista',
   CIVIL: 'Civil',
   CRIMINAL: 'Criminal',
-  TRIBUTARIO: 'Tribut·rio',
-  FAMILIA: 'FamÌlia',
-  PREVIDENCIARIO: 'Previdenci·rio',
+  TRIBUTARIO: 'Tribut√°rio',
+  FAMILIA: 'Fam√≠lia',
+  PREVIDENCIARIO: 'Previdenci√°rio',
   CONSUMIDOR: 'Consumidor',
   EMPRESARIAL: 'Empresarial',
-  AMBIENTAL: 'Ambiental',
   OUTROS: 'Outros',
 };
+
+interface ClientOption {
+  id: string;
+  name: string;
+}
 
 export default function Cases() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,12 +41,26 @@ export default function Cases() {
   const [filterStatus, setFilterStatus] = useState('');
   const [selectedCase, setSelectedCase] = useState<any>(null);
   const [showProcuracaoModal, setShowProcuracaoModal] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [procuracaoForm, setProcuracaoForm] = useState({
     NACIONALIDADE: 'brasileiro(a)',
     ESTADO_CIVIL: '',
     PROFISSAO: '',
     RG: '',
   });
+  const [caseForm, setCaseForm] = useState({
+    caseNumber: '',
+    title: '',
+    type: '',
+    status: 'ATIVO',
+    clientId: '',
+    court: '',
+    value: '',
+    startDate: new Date().toISOString().split('T')[0],
+    description: '',
+  });
+
+  const queryClient = useQueryClient();
 
   const { data: casesData, isLoading } = useQuery({
     queryKey: ['cases'],
@@ -52,6 +70,14 @@ export default function Cases() {
     },
     retry: 1,
     staleTime: 30000,
+  });
+
+  const { data: clients = [] } = useQuery<ClientOption[]>({
+    queryKey: ['clients-for-cases'],
+    queryFn: async () => {
+      const res = await api.get('/clients?limit=200');
+      return res.data.data?.clients || res.data.data || [];
+    },
   });
 
   const cases = casesData?.cases || [];
@@ -64,6 +90,46 @@ export default function Cases() {
     const matchesStatus = !filterStatus || caso.status === filterStatus;
     return matchesSearch && matchesType && matchesStatus;
   });
+
+  const createCaseMutation = useMutation({
+    mutationFn: (data: any) =>
+      api.post('/cases', {
+        ...data,
+        value: data.value ? parseFloat(data.value) : undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      toast.success('Processo criado com sucesso');
+      closeCreateModal();
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Erro ao criar processo');
+    },
+  });
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setCaseForm({
+      caseNumber: '',
+      title: '',
+      type: '',
+      status: 'ATIVO',
+      clientId: '',
+      court: '',
+      value: '',
+      startDate: new Date().toISOString().split('T')[0],
+      description: '',
+    });
+  };
+
+  const handleCreateSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!caseForm.caseNumber || !caseForm.title || !caseForm.type || !caseForm.clientId) {
+      toast.error('Preencha os campos obrigatorios');
+      return;
+    }
+    createCaseMutation.mutate(caseForm);
+  };
 
   const generateProcuracaoMutation = useMutation({
     mutationFn: async () => {
@@ -103,9 +169,13 @@ export default function Cases() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Processos</h1>
-          <p className="text-gray-600 mt-1">Gerencie todos os processos do escritÛrio</p>
+          <h1 className="text-3xl font-bold text-gray-100">Processos</h1>
+          <p className="text-gray-400 mt-1">Gerencie todos os processos do escrit√≥rio</p>
         </div>
+        <button onClick={() => setIsCreateModalOpen(true)} className="btn btn-primary flex items-center gap-2">
+          <PlusIcon className="h-5 w-5" />
+          Novo Processo
+        </button>
       </div>
 
       <div className="card">
@@ -114,10 +184,10 @@ export default function Cases() {
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Buscar por n˙mero, tÌtulo ou cliente..."
+              placeholder="Buscar por n√∫mero, t√≠tulo ou cliente..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="input-field pl-10"
             />
           </div>
 
@@ -128,7 +198,7 @@ export default function Cases() {
               onChange={(e) => setFilterType(e.target.value)}
               title="Filtrar por tipo"
               aria-label="Filtrar processos por tipo"
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none"
+              className="input-field pl-10 appearance-none"
             >
               <option value="">Todos os Tipos</option>
               {Object.entries(typeLabels).map(([key, label]) => (
@@ -144,7 +214,7 @@ export default function Cases() {
               onChange={(e) => setFilterStatus(e.target.value)}
               title="Filtrar por status"
               aria-label="Filtrar processos por status"
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent appearance-none"
+              className="input-field pl-10 appearance-none"
             >
               <option value="">Todos os Status</option>
               {Object.entries(statusLabels).map(([key, label]) => (
@@ -157,7 +227,7 @@ export default function Cases() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {isLoading ? (
-          <div className="col-span-2 text-center py-8">Carregando processos...</div>
+          <div className="col-span-2 text-center py-8 text-gray-400">Carregando processos...</div>
         ) : filteredCases && filteredCases.length > 0 ? (
           filteredCases.map((caso: any) => (
             <div
@@ -168,32 +238,31 @@ export default function Cases() {
               <div className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-dark-900 dark:text-gray-100">{caso.caseNumber}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{caso.title || 'Sem tÌtulo'}</p>
+                    <h3 className="text-lg font-semibold text-gray-100">{caso.caseNumber}</h3>
+                    <p className="text-sm text-gray-400 mt-1">{caso.title || 'Sem t√≠tulo'}</p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[caso.status]}`}>
-                    {statusLabels[caso.status]}
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[caso.status] || 'bg-gray-200 text-gray-800'}`}>
+                    {statusLabels[caso.status] || caso.status}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                    {typeLabels[caso.type]}
+                    {typeLabels[caso.type] || caso.type}
                   </span>
-                  <span className="text-gray-600"></span>
-                  <span className="text-gray-600">{caso.client?.name || 'Cliente n„o identificado'}</span>
+                  <span className="text-gray-400">{caso.client?.name || 'Cliente n√£o identificado'}</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200">
+                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-dark-700">
                   <div>
-                    <p className="text-xs text-gray-500">Data de Abertura</p>
-                    <p className="text-sm font-medium text-dark-900 dark:text-gray-100">
+                    <p className="text-xs text-gray-400">Data de Abertura</p>
+                    <p className="text-sm font-medium text-gray-100">
                       {new Date(caso.startDate).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Valor da Causa</p>
-                    <p className="text-sm font-medium text-dark-900 dark:text-gray-100">
+                    <p className="text-xs text-gray-400">Valor da Causa</p>
+                    <p className="text-sm font-medium text-gray-100">
                       {caso.value ? `R$ ${caso.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'N/A'}
                     </p>
                   </div>
@@ -202,7 +271,7 @@ export default function Cases() {
             </div>
           ))
         ) : (
-          <div className="col-span-2 text-center py-8 text-gray-500">
+          <div className="col-span-2 text-center py-8 text-gray-400">
             Nenhum processo encontrado com os filtros aplicados
           </div>
         )}
@@ -210,22 +279,20 @@ export default function Cases() {
 
       {selectedCase && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-dark-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-dark-600">
             <div className="p-6">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-dark-900 dark:text-gray-100">{selectedCase.caseNumber}</h2>
-                  <p className="text-gray-600 mt-1">{selectedCase.title}</p>
+                  <h2 className="text-2xl font-bold text-gray-100">{selectedCase.caseNumber}</h2>
+                  <p className="text-gray-400 mt-1">{selectedCase.title}</p>
                 </div>
                 <button
                   onClick={() => setSelectedCase(null)}
                   title="Fechar"
                   aria-label="Fechar detalhes do processo"
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-400 hover:text-gray-200"
                 >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
 
@@ -233,22 +300,22 @@ export default function Cases() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Cliente</label>
-                    <p className="text-dark-900 dark:text-gray-100 mt-1">{selectedCase.client?.name}</p>
+                    <p className="text-gray-100 mt-1">{selectedCase.client?.name}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Tipo</label>
-                    <p className="text-dark-900 dark:text-gray-100 mt-1">{typeLabels[selectedCase.type]}</p>
+                    <p className="text-gray-100 mt-1">{typeLabels[selectedCase.type] || selectedCase.type}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Status</label>
-                    <span className={`inline-block mt-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[selectedCase.status]}`}>
-                      {statusLabels[selectedCase.status]}
+                    <span className={`inline-block mt-1 px-2.5 py-1 rounded-full text-xs font-medium ${statusColors[selectedCase.status] || 'bg-gray-200 text-gray-800'}`}>
+                      {statusLabels[selectedCase.status] || selectedCase.status}
                     </span>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Valor da Causa</label>
-                    <p className="text-dark-900 dark:text-gray-100 mt-1">
-                      {selectedCase.value ? `R$ ${selectedCase.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'N„o informado'}
+                    <p className="text-gray-100 mt-1">
+                      {selectedCase.value ? `R$ ${selectedCase.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : 'N√£o informado'}
                     </p>
                   </div>
                 </div>
@@ -256,33 +323,33 @@ export default function Cases() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Data de Abertura</label>
-                    <p className="text-dark-900 dark:text-gray-100 mt-1">
+                    <p className="text-gray-100 mt-1">
                       {new Date(selectedCase.startDate).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Foro</label>
-                    <p className="text-dark-900 dark:text-gray-100 mt-1">{selectedCase.court || 'N„o informado'}</p>
+                    <p className="text-gray-100 mt-1">{selectedCase.court || 'N√£o informado'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Vara</label>
-                    <p className="text-dark-900 dark:text-gray-100 mt-1">{selectedCase.courtDivision || 'N„o informado'}</p>
+                    <p className="text-gray-100 mt-1">{selectedCase.courtDivision || 'N√£o informado'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-500">Comarca</label>
-                    <p className="text-dark-900 dark:text-gray-100 mt-1">{selectedCase.district || 'N„o informado'}</p>
+                    <p className="text-gray-100 mt-1">{selectedCase.district || 'N√£o informado'}</p>
                   </div>
                 </div>
 
                 {selectedCase.description && (
                   <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-gray-500">DescriÁ„o</label>
-                    <p className="text-dark-900 dark:text-gray-100 mt-1 whitespace-pre-wrap">{selectedCase.description}</p>
+                    <label className="text-sm font-medium text-gray-500">Descri√ß√£o</label>
+                    <p className="text-gray-100 mt-1 whitespace-pre-wrap">{selectedCase.description}</p>
                   </div>
                 )}
               </div>
 
-              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-dark-700">
                 <button
                   onClick={() => setShowProcuracaoModal(true)}
                   className="btn btn-primary flex items-center gap-2"
@@ -292,7 +359,7 @@ export default function Cases() {
                 </button>
                 <button
                   onClick={() => setSelectedCase(null)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-dark-600 rounded-lg text-gray-200 hover:bg-dark-700"
                 >
                   Fechar
                 </button>
@@ -304,18 +371,18 @@ export default function Cases() {
 
       {showProcuracaoModal && selectedCase && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white dark:bg-dark-800 rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-dark-800 rounded-lg shadow-xl max-w-md w-full border border-dark-600">
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-dark-900 dark:text-gray-100">Gerar Procuracao</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <h3 className="text-lg font-bold text-gray-100">Gerar Procuracao</h3>
+                  <p className="text-sm text-gray-400 mt-1">
                     Cliente e advogado sao preenchidos automaticamente. Complete os dados abaixo.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowProcuracaoModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-400 hover:text-gray-200"
                   title="Fechar"
                   aria-label="Fechar"
                 >
@@ -359,10 +426,10 @@ export default function Cases() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-dark-700">
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-dark-700">
                 <button
                   onClick={() => setShowProcuracaoModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-dark-600 rounded-lg text-gray-200 hover:bg-dark-700"
                 >
                   Cancelar
                 </button>
@@ -378,7 +445,151 @@ export default function Cases() {
           </div>
         </div>
       )}
+
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-dark-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-dark-600">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-gray-100">Novo Processo</h2>
+                <button
+                  onClick={closeCreateModal}
+                  title="Fechar"
+                  aria-label="Fechar modal"
+                  className="text-gray-400 hover:text-gray-200"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">N√∫mero do processo *</label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={caseForm.caseNumber}
+                      onChange={(e) => setCaseForm({ ...caseForm, caseNumber: e.target.value })}
+                      placeholder="0000000-00.0000.0.00.0000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Cliente *</label>
+                    <select
+                      className="input-field"
+                      value={caseForm.clientId}
+                      onChange={(e) => setCaseForm({ ...caseForm, clientId: e.target.value })}
+                    >
+                      <option value="">Selecione um cliente</option>
+                      {clients.map((client) => (
+                        <option key={client.id} value={client.id}>{client.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-200 mb-1">T√≠tulo *</label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={caseForm.title}
+                      onChange={(e) => setCaseForm({ ...caseForm, title: e.target.value })}
+                      placeholder="Ex: A√ß√£o Trabalhista - Horas Extras"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Tipo *</label>
+                    <select
+                      className="input-field"
+                      value={caseForm.type}
+                      onChange={(e) => setCaseForm({ ...caseForm, type: e.target.value })}
+                    >
+                      <option value="">Selecione o tipo</option>
+                      {Object.entries(typeLabels).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Status</label>
+                    <select
+                      className="input-field"
+                      value={caseForm.status}
+                      onChange={(e) => setCaseForm({ ...caseForm, status: e.target.value })}
+                    >
+                      {Object.entries(statusLabels).map(([key, label]) => (
+                        <option key={key} value={key}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Foro / Vara</label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={caseForm.court}
+                      onChange={(e) => setCaseForm({ ...caseForm, court: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Valor da causa (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="input-field"
+                      value={caseForm.value}
+                      onChange={(e) => setCaseForm({ ...caseForm, value: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Data de abertura</label>
+                    <input
+                      type="date"
+                      className="input-field"
+                      value={caseForm.startDate}
+                      onChange={(e) => setCaseForm({ ...caseForm, startDate: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-200 mb-1">Descri√ß√£o</label>
+                    <textarea
+                      className="input-field"
+                      rows={3}
+                      value={caseForm.description}
+                      onChange={(e) => setCaseForm({ ...caseForm, description: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={closeCreateModal}
+                    className="px-4 py-2 border border-dark-600 rounded-lg text-gray-200 hover:bg-dark-700"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createCaseMutation.isPending}
+                    className="btn btn-primary disabled:opacity-50"
+                  >
+                    {createCaseMutation.isPending ? 'Criando...' : 'Criar Processo'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
