@@ -12,6 +12,6 @@
   <circle cx="33" cy="66" r="4" fill="#e2e8f0" />
   <circle cx="87" cy="66" r="4" fill="#e2e8f0" />
   <path d="M46 76h28" stroke="#e2e8f0" stroke-width="6" stroke-linecap="round" />
-  <text x="132" y="52" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#0f172a">ManuADV Jurídico</text>
-  <text x="132" y="84" font-size="22" font-family="Segoe UI, Arial, sans-serif" font-weight="500" fill="#475569">Gestão advocatícia</text>
+  <text x="132" y="52" font-size="38" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#f0f9ff">ManuADV Jurídico</text>
+  <text x="132" y="84" font-size="22" font-family="Segoe UI, Arial, sans-serif" font-weight="500" fill="#bae6fd">Gestão advocatícia</text>
 </svg>

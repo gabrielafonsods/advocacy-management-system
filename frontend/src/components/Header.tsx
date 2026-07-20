@@ -132,7 +132,6 @@ export default function Header() {
           </button>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <img src="/logo-mark.svg" alt="ManuADV Juridico" className="h-7 w-7 rounded-md" />
               <h2 className="text-lg md:text-2xl font-semibold text-dark-900 dark:text-gray-100 truncate">
                 Bem-vindo, {user?.name}
               </h2>

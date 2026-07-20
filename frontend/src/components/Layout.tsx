@@ -13,17 +13,9 @@ export default function Layout() {
         </main>
         <footer className="bg-white dark:bg-dark-800 border-t border-gray-200 dark:border-dark-700 py-3 px-6">
           <div className="text-center text-sm text-gray-600 dark:text-gray-300 flex items-center justify-center gap-2">
-            <img src="/logo-mark.svg" alt="ManuADV Juridico" className="h-5 w-5 rounded-md" />
             <span>
               Desenvolvido por{' '}
-              <a
-                href="https://okapi-code-forge.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                Okapi Code Forge
-              </a>
+              <span className="font-semibold text-primary-600">GA Systems</span>
             </span>
           </div>
         </footer>

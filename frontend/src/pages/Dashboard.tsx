@@ -184,7 +184,6 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-3">
-          <img src="/logo-mark.svg" alt="ManuADV Juridico" className="h-10 w-10 rounded-md" />
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Dashboard</h1>
         </div>
         <p className="text-gray-600 dark:text-gray-300 mt-1">Visao geral do escritorio</p>

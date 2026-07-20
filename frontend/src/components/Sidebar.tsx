@@ -40,7 +40,6 @@ export default function Sidebar() {
       <div className="p-4 border-b border-dark-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <img src="/logo-mark.svg" alt="ManuADV Juridico" className="h-10 w-10 rounded-xl" />
             {!sidebarCollapsed && (
               <div className="min-w-0">
                 <h1 className="text-lg font-bold text-primary-300 truncate">ManuADV Juridico</h1>

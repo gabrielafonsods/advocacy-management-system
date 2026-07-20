@@ -17,7 +17,6 @@ const Settings = lazy(() => import('./pages/Settings'));
 
 const RouteFallback = () => (
   <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-    <img src="/logo-mark.svg" alt="ManuADV Juridico" className="h-12 w-12 rounded-lg animate-pulse" />
     <span>Carregando ManuADV Juridico...</span>
   </div>
 );
