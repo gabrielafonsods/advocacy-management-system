@@ -83,7 +83,7 @@ export default function Settings() {
     if (!user?.id) return;
 
     if (data.newPassword !== data.confirmPassword) {
-      toast.error('As senhas nao coincidem');
+      toast.error('As senhas não coincidem');
       return;
     }
 
@@ -109,13 +109,13 @@ export default function Settings() {
     if (!file || !user?.id) return;
 
     if (!allowedImageTypes.includes(file.type)) {
-      toast.error('Formato invalido. Use JPG, PNG, GIF ou WEBP');
+      toast.error('Formato inválido. Use JPG, PNG, GIF ou WEBP');
       event.target.value = '';
       return;
     }
 
     if (file.size > PROFILE_IMAGE_MAX_SIZE) {
-      toast.error('A imagem deve ter no maximo 10MB');
+      toast.error('A imagem deve ter no máximo 10MB');
       event.target.value = '';
       return;
     }
@@ -146,13 +146,13 @@ export default function Settings() {
 
   const tabs = [
     { id: 'profile', name: 'Perfil', icon: UserCircleIcon },
-    { id: 'security', name: 'Seguranca', icon: KeyIcon },
-    { id: 'notifications', name: 'Notificacoes', icon: BellIcon },
+    { id: 'security', name: 'Segurança', icon: KeyIcon },
+    { id: 'notifications', name: 'Notificações', icon: BellIcon },
   ] as const;
 
   return (
     <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100 mb-6">Configuracoes</h1>
+      <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100 mb-6">Configurações</h1>
 
       <div className="border-b border-gray-200 dark:border-dark-700 mb-6">
         <nav className="-mb-px flex space-x-8 overflow-x-auto">
@@ -163,7 +163,7 @@ export default function Settings() {
               className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 hover:border-gray-300'
+                  : 'border-transparent text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 hover:border-dark-500'
               }`}
             >
               <tab.icon
@@ -177,7 +177,7 @@ export default function Settings() {
 
       {activeTab === 'profile' && (
         <div className="card">
-          <h2 className="text-xl font-semibold mb-6 text-dark-900 dark:text-gray-100">Informacoes do perfil</h2>
+          <h2 className="text-xl font-semibold mb-6 text-dark-900 dark:text-gray-100">Informações do perfil</h2>
 
           <div className="mb-8 pb-8 border-b border-gray-200 dark:border-dark-700">
             <h3 className="text-lg font-medium mb-4 text-dark-900 dark:text-gray-100">Foto de perfil</h3>
@@ -212,7 +212,7 @@ export default function Settings() {
                   {loading ? 'Enviando...' : 'Alterar foto'}
                 </label>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                  Formatos aceitos: JPG, PNG, GIF e WEBP. Maximo 10MB.
+                  Formatos aceitos: JPG, PNG, GIF e WEBP. Máximo 10MB.
                 </p>
               </div>
             </div>
@@ -223,7 +223,7 @@ export default function Settings() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Nome completo *</label>
                 <input
-                  {...registerProfile('name', { required: 'Nome obrigatorio' })}
+                  {...registerProfile('name', { required: 'Nome obrigatório' })}
                   type="text"
                   className="input-field"
                 />
@@ -233,7 +233,7 @@ export default function Settings() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Email *</label>
                 <input
-                  {...registerProfile('email', { required: 'Email obrigatorio' })}
+                  {...registerProfile('email', { required: 'Email obrigatório' })}
                   type="email"
                   className="input-field"
                 />
@@ -255,7 +255,7 @@ export default function Settings() {
 
               <div>
                 <label htmlFor="profile-role" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                  Funcao
+                  Função
                 </label>
                 <input
                   id="profile-role"
@@ -269,7 +269,7 @@ export default function Settings() {
 
             <div className="flex justify-end">
               <button type="submit" disabled={loading} className="btn btn-primary">
-                {loading ? 'Salvando...' : 'Salvar alteracoes'}
+                {loading ? 'Salvando...' : 'Salvar alterações'}
               </button>
             </div>
           </form>
@@ -310,9 +310,9 @@ export default function Settings() {
 
       {activeTab === 'notifications' && (
         <div className="card">
-          <h2 className="text-xl font-semibold mb-6 text-dark-900 dark:text-gray-100">Preferencias de notificacoes</h2>
+          <h2 className="text-xl font-semibold mb-6 text-dark-900 dark:text-gray-100">Preferências de notificações</h2>
           <div className="space-y-6">
-            {['Notificacoes de email', 'Alertas de prazos', 'Notificacoes de audiencias', 'Novos documentos'].map(
+            {['Notificações de email', 'Alertas de prazos', 'Notificações de audiências', 'Novos documentos'].map(
               (item, index) => (
                 <div key={item} className="flex items-center justify-between gap-4">
                   <div>

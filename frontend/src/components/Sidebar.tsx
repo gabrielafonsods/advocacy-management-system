@@ -22,9 +22,9 @@ const navigation = [
   { name: 'Documentos', href: '/documentos', icon: DocumentTextIcon },
   { name: 'Prazos', href: '/prazos', icon: ClockIcon },
   { name: 'Honorários', href: '/honorarios', icon: CurrencyDollarIcon },
-  { name: 'Contratos', href: '/contracts', icon: DocumentDuplicateIcon },
-  { name: 'Configurações', href: '/settings', icon: Cog6ToothIcon },
-  ];
+  { name: 'Contratos', href: '/contratos', icon: DocumentDuplicateIcon },
+  { name: 'Configurações', href: '/configuracoes', icon: Cog6ToothIcon },
+];
 
 export default function Sidebar() {
   const location = useLocation();

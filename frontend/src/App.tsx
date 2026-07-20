@@ -39,8 +39,8 @@ function App() {
             <Route path="/documentos" element={<Documents />} />
             <Route path="/prazos" element={<Deadlines />} />
             <Route path="/honorarios" element={<Fees />} />
-            <Route path="/contracts" element={<Contracts />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/contratos" element={<Contracts />} />
+            <Route path="/configuracoes" element={<Settings />} />
           </Route>
 
           <Route path="/" element={<Navigate to="/dashboard" />} />

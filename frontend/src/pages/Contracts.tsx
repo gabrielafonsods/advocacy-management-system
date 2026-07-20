@@ -100,7 +100,7 @@ export default function Contracts() {
     mutationFn: (id: string) => api.delete(`/contracts/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
-      toast.success('Contrato excluido com sucesso');
+      toast.success('Contrato excluído com sucesso');
     },
     onError: (error: any) => toast.error(error.response?.data?.message || 'Erro ao excluir contrato'),
   });
@@ -109,7 +109,7 @@ export default function Contracts() {
     event.preventDefault();
 
     if (!formData.title || !formData.value || !formData.startDate || !formData.clientId) {
-      toast.error('Preencha os campos obrigatorios');
+      toast.error('Preencha os campos obrigatórios');
       return;
     }
 
@@ -194,6 +194,7 @@ export default function Contracts() {
             <DocumentTextIcon className="h-8 w-8 text-primary-600" />
             Contratos
           </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Gerencie os contratos e gere o PDF a qualquer momento</p>
         </div>
         <button className="btn btn-primary flex items-center gap-2" onClick={() => setIsModalOpen(true)}>
           <PlusIcon className="h-5 w-5" />
@@ -210,10 +211,10 @@ export default function Contracts() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-dark-700">
-                <th className="py-3 pr-4 font-medium">Titulo</th>
+                <th className="py-3 pr-4 font-medium">Título</th>
                 <th className="py-3 pr-4 font-medium">Cliente</th>
                 <th className="py-3 pr-4 font-medium">Valor</th>
-                <th className="py-3 pr-4 font-medium">Vigencia</th>
+                <th className="py-3 pr-4 font-medium">Vigência</th>
                 <th className="py-3 pr-4 font-medium">Status</th>
                 <th className="py-3 pr-4 font-medium text-right">Acoes</th>
               </tr>
@@ -268,7 +269,7 @@ export default function Contracts() {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-dark-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-dark-600">
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-dark-700">
               <h2 className="text-xl font-bold">{editingContract ? 'Editar Contrato' : 'Novo Contrato'}</h2>
               <button onClick={closeModal} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700">
@@ -278,7 +279,7 @@ export default function Contracts() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Titulo *</label>
+                <label className="block text-sm font-medium mb-1">Título *</label>
                 <input
                   className="input-field"
                   value={formData.title}
@@ -304,7 +305,7 @@ export default function Contracts() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Descricao / Objeto</label>
+                <label className="block text-sm font-medium mb-1">Descrição / Objeto</label>
                 <textarea
                   className="input-field"
                   rows={2}
@@ -340,7 +341,7 @@ export default function Contracts() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Data de inicio *</label>
+                  <label className="block text-sm font-medium mb-1">Data de início *</label>
                   <input
                     type="date"
                     className="input-field"
@@ -349,7 +350,7 @@ export default function Contracts() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Data de termino</label>
+                  <label className="block text-sm font-medium mb-1">Data de término</label>
                   <input
                     type="date"
                     className="input-field"
@@ -360,13 +361,13 @@ export default function Contracts() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Clausulas e condicoes</label>
+                <label className="block text-sm font-medium mb-1">Cláusulas e condições</label>
                 <textarea
                   className="input-field"
                   rows={4}
                   value={formData.terms}
                   onChange={(e) => setFormData({ ...formData, terms: e.target.value })}
-                  placeholder="Texto que aparece no PDF, na secao de clausulas e condicoes"
+                  placeholder="Texto que aparece no PDF, na seção de cláusulas e condições"
                 />
               </div>
 
