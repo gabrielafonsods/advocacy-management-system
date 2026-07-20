@@ -193,7 +193,6 @@ export default function Documents() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Documentos</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Upload funcional com validação PDF obrigatória</p>
         </div>
         <button
           onClick={() => setIsUploadModalOpen(true)}

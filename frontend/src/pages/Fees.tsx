@@ -373,7 +373,6 @@ export default function Fees() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Honorários</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">Visualize e gerencie honorários por status e por período</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}

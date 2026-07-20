@@ -186,7 +186,6 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Dashboard</h1>
         </div>
-        <p className="text-gray-600 dark:text-gray-300 mt-1">Visao geral do escritorio</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

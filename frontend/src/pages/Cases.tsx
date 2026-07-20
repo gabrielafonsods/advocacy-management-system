@@ -170,7 +170,6 @@ export default function Cases() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-100">Processos</h1>
-          <p className="text-gray-400 mt-1">Gerencie todos os processos do escritório</p>
         </div>
         <button onClick={() => setIsCreateModalOpen(true)} className="btn btn-primary flex items-center gap-2">
           <PlusIcon className="h-5 w-5" />

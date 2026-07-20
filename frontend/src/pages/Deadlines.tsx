@@ -222,7 +222,6 @@ export default function Deadlines() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Prazos Judiciais</h1>
-          <p className="text-gray-400 mt-1">Controle rigoroso dos prazos processuais</p>
         </div>
         <button onClick={openCreateModal} className="btn btn-primary">
           <PlusIcon className="h-5 w-5 mr-2" />

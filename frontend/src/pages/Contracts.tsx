@@ -194,7 +194,6 @@ export default function Contracts() {
             <DocumentTextIcon className="h-8 w-8 text-primary-600" />
             Contratos
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Gerencie os contratos e gere o PDF a qualquer momento</p>
         </div>
         <button className="btn btn-primary flex items-center gap-2" onClick={() => setIsModalOpen(true)}>
           <PlusIcon className="h-5 w-5" />
