@@ -6,7 +6,10 @@ import {
   UsersIcon,
   ClockIcon,
   CalendarIcon,
+  CalendarDaysIcon,
   CurrencyDollarIcon,
+  BanknotesIcon,
+  CheckCircleIcon,
   DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { Bar, Doughnut } from 'react-chartjs-2';
@@ -93,11 +96,19 @@ export default function Dashboard() {
 
   const statsCards = [
     { name: 'Processos ativos', value: stats?.activeCases || 0, icon: BriefcaseIcon, color: 'bg-blue-500' },
+    { name: 'Processos encerrados', value: stats?.closedCases || 0, icon: CheckCircleIcon, color: 'bg-slate-500' },
+    { name: 'Audiências da semana', value: stats?.weeklyHearings || 0, icon: CalendarDaysIcon, color: 'bg-fuchsia-500' },
     { name: 'Total de clientes', value: stats?.totalClients || 0, icon: UsersIcon, color: 'bg-green-500' },
     { name: 'Prazos pendentes', value: stats?.pendingDeadlines || 0, icon: ClockIcon, color: 'bg-yellow-500' },
-    { name: 'Audiencias proximas', value: stats?.upcomingHearings || 0, icon: CalendarIcon, color: 'bg-purple-500' },
+    { name: 'Audiências próximas', value: stats?.upcomingHearings || 0, icon: CalendarIcon, color: 'bg-purple-500' },
     {
-      name: 'Honorarios pendentes',
+      name: 'Honorários recebidos',
+      value: `R$ ${(stats?.paidRevenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      icon: BanknotesIcon,
+      color: 'bg-emerald-600',
+    },
+    {
+      name: 'Honorários pendentes',
       value: `R$ ${(stats?.pendingFees || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
       icon: CurrencyDollarIcon,
       color: 'bg-red-500',
@@ -131,7 +142,7 @@ export default function Dashboard() {
         backgroundColor: 'rgba(59, 130, 246, 0.8)',
       },
       {
-        label: 'Audiencias',
+        label: 'Audiências',
         data: monthlyActivity?.map((item: any) => item.hearings) || [],
         backgroundColor: 'rgba(139, 92, 246, 0.8)',
       },
@@ -255,7 +266,7 @@ export default function Dashboard() {
       </div>
 
       <div className="card">
-        <h3 className="text-lg font-semibold text-dark-900 dark:text-gray-100 mb-4">Prazos proximos</h3>
+        <h3 className="text-lg font-semibold text-dark-900 dark:text-gray-100 mb-4">Prazos próximos</h3>
         <div className="space-y-3">
           {deadlines?.deadlines && deadlines.deadlines.length > 0 ? (
             deadlines.deadlines.slice(0, 5).map((deadline: any) => {
@@ -279,7 +290,7 @@ export default function Dashboard() {
               );
             })
           ) : (
-            <p className="text-gray-500 dark:text-gray-300 text-center py-4">Nenhum prazo proximo</p>
+            <p className="text-gray-500 dark:text-gray-300 text-center py-4">Nenhum prazo próximo</p>
           )}
         </div>
       </div>

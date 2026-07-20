@@ -10,6 +10,7 @@ export const getStats = async (req: AuthRequest, res: Response, next: NextFuncti
       totalClients,
       totalCases,
       activeCases,
+      closedCases,
       pendingDeadlines,
       upcomingHearings,
       totalFees,
@@ -18,6 +19,7 @@ export const getStats = async (req: AuthRequest, res: Response, next: NextFuncti
       prisma.client.count(),
       prisma.case.count(),
       prisma.case.count({ where: { status: 'ATIVO' } }),
+      prisma.case.count({ where: { status: 'ENCERRADO' } }),
       prisma.deadline.count({ where: { isCompleted: false } }),
       prisma.hearing.count({
         where: {
@@ -39,6 +41,19 @@ export const getStats = async (req: AuthRequest, res: Response, next: NextFuncti
       }),
     ]);
 
+    const now = new Date();
+    const endOfWeek = new Date(now);
+    endOfWeek.setDate(now.getDate() + 7);
+
+    const weeklyHearings = await prisma.hearing.count({
+      where: {
+        date: {
+          gte: now,
+          lte: endOfWeek,
+        },
+      },
+    });
+
     const pendingFeesAmount = await prisma.fee.aggregate({
       where: { status: { in: ['PENDENTE', 'ATRASADO'] } },
       _sum: {
@@ -52,8 +67,10 @@ export const getStats = async (req: AuthRequest, res: Response, next: NextFuncti
       totalClients,
       totalCases,
       activeCases,
+      closedCases,
       pendingDeadlines,
       upcomingHearings,
+      weeklyHearings,
       pendingFees: pendingFeesAmount._sum.amount || 0,
       totalDocuments,
       totalRevenue: totalFees._sum.amount || 0,
