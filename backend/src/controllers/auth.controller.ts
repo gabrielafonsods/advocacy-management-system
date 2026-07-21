@@ -6,6 +6,7 @@ import QRCode from 'qrcode';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
+import { notifySocios } from '../services/notification.service';
 import { createAuditLog } from '../utils/audit';
 
 // Gerar tokens JWT
@@ -59,6 +60,15 @@ export const register = async (req: AuthRequest, res: Response, next: NextFuncti
 
     // Criar log de auditoria
     await createAuditLog('CREATE', 'User', user.id, user.id, req.ip, req.get('user-agent'));
+
+    if (user.role === 'ADVOGADO' || user.role === 'ESTAGIARIO') {
+      await notifySocios({
+        title: user.role === 'ADVOGADO' ? 'Novo advogado cadastrado' : 'Novo estagiário cadastrado',
+        message: `${user.name} foi cadastrado(a) no sistema.`,
+        type: 'USUARIO_NOVO',
+        link: '/configuracoes',
+      });
+    }
 
     res.status(201).json({
       status: 'success',

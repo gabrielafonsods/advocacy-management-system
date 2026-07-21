@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
+import { notifyUser } from '../services/notification.service';
 
 export const getHearings = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -58,6 +59,15 @@ export const createHearing = async (req: AuthRequest, res: Response, next: NextF
       },
       include: { case: true },
     });
+
+    if (hearing.case?.responsibleId) {
+      await notifyUser(hearing.case.responsibleId, {
+        title: 'Audiência marcada',
+        message: `Audiência "${hearing.title}" marcada para o processo ${hearing.case.caseNumber}.`,
+        type: 'AUDIENCIA_MARCADA',
+        link: '/agenda',
+      });
+    }
 
     res.status(201).json({ status: 'success', data: hearing });
   } catch (error) {

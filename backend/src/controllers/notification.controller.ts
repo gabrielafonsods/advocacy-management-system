@@ -1,6 +1,9 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
+import { AppError } from '../middleware/errorHandler';
 import { PrismaClient } from '@prisma/client';
+import { notifyUsers, notifyByRole, notifyAll } from '../services/notification.service';
+import { runDailyNotificationChecks } from '../jobs/notificationScheduler';
 
 const prisma = new PrismaClient();
 
@@ -106,6 +109,50 @@ export const deleteNotification = async (req: AuthRequest, res: Response, next: 
       success: true,
       message: 'Notificação excluída',
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Criação manual de notificação — apenas SOCIO. Permite escolher usuários
+// específicos ("citar quem quiser"), um ou mais cargos, ou todo mundo.
+export const createNotification = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { title, message, target, userIds, roles, link } = req.body;
+
+    if (!title || !message) {
+      throw new AppError('Título e mensagem são obrigatórios', 400);
+    }
+
+    const payload = { title, message, type: 'MENSAGEM', link };
+
+    if (target === 'ALL') {
+      await notifyAll(payload);
+    } else if (target === 'ROLE') {
+      if (!Array.isArray(roles) || !roles.length) {
+        throw new AppError('Selecione ao menos um cargo', 400);
+      }
+      await notifyByRole(roles, payload);
+    } else {
+      if (!Array.isArray(userIds) || !userIds.length) {
+        throw new AppError('Selecione ao menos um usuário', 400);
+      }
+      await notifyUsers(userIds, payload);
+    }
+
+    res.status(201).json({ success: true, message: 'Notificação enviada com sucesso' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Dispara manualmente a verificação diária (prazos, audiências, processos
+// parados, honorários em atraso) — útil para testar sem esperar o horário
+// agendado. Apenas SOCIO.
+export const runChecksNow = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const count = await runDailyNotificationChecks();
+    res.json({ success: true, message: `Verificação concluída: ${count} notificação(ões) geradas` });
   } catch (error) {
     next(error);
   }

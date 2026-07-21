@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import fs from 'fs';
 import path from 'path';
+import { notifyUser } from '../services/notification.service';
 
 export const getDocuments = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -116,6 +117,21 @@ export const uploadDocument = async (req: AuthRequest, res: Response, next: Next
         },
       },
     });
+
+    if (document.case?.id) {
+      const caseWithResponsible = await prisma.case.findUnique({
+        where: { id: document.case.id },
+        select: { responsibleId: true, caseNumber: true },
+      });
+      if (caseWithResponsible?.responsibleId && caseWithResponsible.responsibleId !== req.user!.id) {
+        await notifyUser(caseWithResponsible.responsibleId, {
+          title: 'Documento anexado',
+          message: `Um novo documento ("${title}") foi anexado ao processo ${caseWithResponsible.caseNumber}.`,
+          type: 'DOCUMENTO_ANEXADO',
+          link: `/documentos`,
+        });
+      }
+    }
 
     res.status(201).json({ status: 'success', data: document, message: 'Documento enviado com sucesso' });
   } catch (error) {

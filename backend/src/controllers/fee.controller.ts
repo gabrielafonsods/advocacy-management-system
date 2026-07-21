@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { PrismaClient } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
+import { notifyByRole } from '../services/notification.service';
 
 const prisma = new PrismaClient();
 
@@ -132,6 +133,15 @@ export const updateFee = async (req: AuthRequest, res: Response, next: NextFunct
         },
       },
     });
+
+    if (status === 'PAGO' && fee.status !== 'PAGO') {
+      await notifyByRole(['SOCIO', 'ADMINISTRATIVO'], {
+        title: 'Honorário recebido',
+        message: `Um honorário de R$ ${Number(updatedFee.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} foi recebido.`,
+        type: 'HONORARIO_RECEBIDO',
+        link: '/honorarios',
+      });
+    }
 
     res.json({ success: true, data: updatedFee });
   } catch (error) {

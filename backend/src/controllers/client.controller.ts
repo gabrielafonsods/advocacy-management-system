@@ -3,6 +3,7 @@ import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { createAuditLog } from '../utils/audit';
+import { notifyByRole } from '../services/notification.service';
 
 export const getClients = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -115,6 +116,13 @@ export const createClient = async (req: AuthRequest, res: Response, next: NextFu
     });
 
     await createAuditLog('CREATE', 'Client', client.id, req.user!.id, req.ip, req.get('user-agent'));
+
+    await notifyByRole(['SOCIO', 'ADMINISTRATIVO'], {
+      title: 'Novo cliente cadastrado',
+      message: `${client.name} foi cadastrado(a) como cliente.`,
+      type: 'CLIENTE_NOVO',
+      link: '/clientes',
+    });
 
     res.status(201).json({
       status: 'success',

@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { createAuditLog } from '../utils/audit';
+import { notifySocios, notifyUser } from '../services/notification.service';
 
 // Get all users
 export const getUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -125,6 +126,20 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
       req.get('user-agent'),
       `Usuário ${user.name} atualizado`
     );
+
+    if (role !== undefined && role !== existingUser.role) {
+      await notifySocios({
+        title: 'Permissões alteradas',
+        message: `O cargo de ${user.name} foi alterado de ${existingUser.role} para ${role}.`,
+        type: 'PERMISSAO_ALTERADA',
+        link: '/configuracoes',
+      });
+      await notifyUser(user.id, {
+        title: 'Suas permissões foram alteradas',
+        message: `Seu cargo no sistema agora é ${role}.`,
+        type: 'PERMISSAO_ALTERADA',
+      });
+    }
 
     res.json({ status: 'success', data: user });
   } catch (error) {
