@@ -1,4 +1,5 @@
 import prisma from '../config/database';
+import { UserRole } from '@prisma/client';
 
 export interface NotificationPayload {
   title: string;
@@ -43,7 +44,7 @@ export async function notifyUsers(userIds: string[], payload: NotificationPayloa
 /**
  * Notifica todos os usuários ativos de um ou mais cargos (ex: ['SOCIO']).
  */
-export async function notifyByRole(roles: string[], payload: NotificationPayload) {
+export async function notifyByRole(roles: UserRole[], payload: NotificationPayload) {
   const users = await prisma.user.findMany({
     where: { role: { in: roles }, isActive: true },
     select: { id: true },
