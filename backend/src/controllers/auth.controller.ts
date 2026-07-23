@@ -7,6 +7,7 @@ import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { notifySocios } from '../services/notification.service';
+import { validatePasswordStrength } from '../utils/passwordPolicy';
 import { createAuditLog } from '../utils/audit';
 
 // Gerar tokens JWT
@@ -16,10 +17,10 @@ const generateTokens = (userId: string, email: string, role: string) => {
   const refreshSecret = process.env.JWT_REFRESH_SECRET as string;
   
   // @ts-ignore - Issue with jsonwebtoken types
-  const accessToken = jwt.sign(payload, secret, { expiresIn: '15m' });
+  const accessToken = jwt.sign(payload, secret, { expiresIn: '15m', algorithm: 'HS256' });
   
   // @ts-ignore - Issue with jsonwebtoken types
-  const refreshToken = jwt.sign(payload, refreshSecret, { expiresIn: '7d' });
+  const refreshToken = jwt.sign(payload, refreshSecret, { expiresIn: '7d', algorithm: 'HS256' });
 
   return { accessToken, refreshToken };
 };
@@ -33,6 +34,11 @@ export const register = async (req: AuthRequest, res: Response, next: NextFuncti
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new AppError('Email já cadastrado', 400);
+    }
+
+    const passwordError = validatePasswordStrength(password);
+    if (passwordError) {
+      throw new AppError(passwordError, 400);
     }
 
     // Hash da senha
@@ -180,7 +186,7 @@ export const refreshToken = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     // Verificar o token JWT
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!, { algorithms: ['HS256'] }) as {
       id: string;
       email: string;
       role: string;

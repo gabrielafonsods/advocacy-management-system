@@ -87,14 +87,23 @@ export default function Settings() {
       return;
     }
 
-    if (data.newPassword.length < 6) {
-      toast.error('A nova senha precisa ter ao menos 6 caracteres');
+    if (
+      data.newPassword.length < 8 ||
+      !/[A-Z]/.test(data.newPassword) ||
+      !/[a-z]/.test(data.newPassword) ||
+      !/[0-9]/.test(data.newPassword) ||
+      !/[^A-Za-z0-9]/.test(data.newPassword)
+    ) {
+      toast.error('A senha precisa ter 8+ caracteres, com maiúscula, minúscula, número e caractere especial');
       return;
     }
 
     try {
       setLoading(true);
-      await api.put(`/users/${user.id}`, { password: data.newPassword });
+      await api.put(`/users/${user.id}`, {
+        password: data.newPassword,
+        currentPassword: data.currentPassword,
+      });
       toast.success('Senha alterada com sucesso');
       resetPassword();
     } catch (error: any) {

@@ -10,11 +10,23 @@ import {
   getCurrentUser
 } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
+import rateLimit from 'express-rate-limit';
+
+// Limite bem mais rígido que o global — protege login/registro contra
+// força bruta e credential stuffing (5 tentativas a cada 15 minutos por IP).
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { status: 'error', message: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+});
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', login);
+router.post('/register', authLimiter, register);
+router.post('/login', authLimiter, login);
 router.post('/refresh', refreshToken);
 router.post('/logout', authenticate, logout);
 router.get('/me', authenticate, getCurrentUser);

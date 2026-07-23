@@ -24,7 +24,7 @@ export const authenticate = async (
 
     const token = authHeader.split(' ')[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!, { algorithms: ['HS256'] }) as {
       id: string;
       email: string;
       role: string;

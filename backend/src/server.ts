@@ -6,6 +6,16 @@ import { runDailyNotificationChecks } from './jobs/notificationScheduler';
 
 dotenv.config();
 
+// Aviso de segurança: segredos JWT curtos são mais fáceis de quebrar por
+// força bruta. Recomenda-se 32+ caracteres aleatórios em produção.
+['JWT_SECRET', 'JWT_REFRESH_SECRET'].forEach((key) => {
+  const value = process.env[key];
+  if (!value || value.length < 32) {
+    logger.warn(
+      `⚠️  ${key} tem menos de 32 caracteres — recomendado usar uma chave mais longa e aleatória em produção.`
+    );
+  }
+});
 
 const PORT = process.env.PORT || 3001;
 
