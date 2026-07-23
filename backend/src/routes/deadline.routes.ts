@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
+import { authenticate, authorize } from '../middleware/auth';
 import {
   getDeadlines,
   getDeadline,
@@ -13,8 +13,8 @@ router.use(authenticate);
 
 router.get('/', getDeadlines);
 router.get('/:id', getDeadline);
-router.post('/', createDeadline);
-router.put('/:id', updateDeadline);
-router.delete('/:id', deleteDeadline);
+router.post('/', authorize('SOCIO', 'ADVOGADO', 'ESTAGIARIO'), createDeadline);
+router.put('/:id', authorize('SOCIO', 'ADVOGADO', 'ESTAGIARIO'), updateDeadline);
+router.delete('/:id', authorize('SOCIO', 'ADVOGADO'), deleteDeadline);
 
 export default router;

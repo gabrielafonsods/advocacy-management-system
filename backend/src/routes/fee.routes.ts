@@ -15,8 +15,8 @@ router.use(authenticate);
 router.get('/stats', getFeeStats);
 router.get('/', getFees);
 router.get('/:id', getFee);
-router.post('/', authorize('SOCIO', 'ADVOGADO'), createFee);
-router.put('/:id', authorize('SOCIO', 'ADVOGADO'), updateFee);
+router.post('/', authorize('SOCIO', 'ADVOGADO', 'ADMINISTRATIVO'), createFee);
+router.put('/:id', authorize('SOCIO', 'ADVOGADO', 'ADMINISTRATIVO'), updateFee);
 router.delete('/:id', authorize('SOCIO', 'ADVOGADO'), deleteFee);
 
 export default router;

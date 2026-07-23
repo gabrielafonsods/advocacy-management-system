@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
+import { authenticate, authorize } from '../middleware/auth';
 import {
   getHearings,
   getHearing,
@@ -13,8 +13,8 @@ router.use(authenticate);
 
 router.get('/', getHearings);
 router.get('/:id', getHearing);
-router.post('/', createHearing);
-router.put('/:id', updateHearing);
-router.delete('/:id', deleteHearing);
+router.post('/', authorize('SOCIO', 'ADVOGADO', 'ESTAGIARIO'), createHearing);
+router.put('/:id', authorize('SOCIO', 'ADVOGADO', 'ESTAGIARIO'), updateHearing);
+router.delete('/:id', authorize('SOCIO', 'ADVOGADO'), deleteHearing);
 
 export default router;
