@@ -83,6 +83,7 @@ model User {
 
   // Relações
   casesResponsible  Case[]         @relation("ResponsibleLawyer")
+  caseAssignments   CaseAssignment[]
   appointments      Appointment[]
   documents         Document[]     @relation("DocumentCreator")
   auditLogs         AuditLog[]
@@ -148,6 +149,7 @@ model Case {
   // Relações
   client          Client       @relation(fields: [clientId], references: [id], onDelete: Restrict)
   responsible     User         @relation("ResponsibleLawyer", fields: [responsibleId], references: [id])
+  assignments     CaseAssignment[]
   parties         Party[]
   deadlines       Deadline[]
   hearings        Hearing[]
@@ -156,6 +158,22 @@ model Case {
   fees            Fee[]
 
   @@map("cases")
+}
+
+// Compartilhamento explícito de um processo com outras pessoas além do
+// responsável principal — usado para dar acesso a estagiários ou a um
+// segundo advogado que também trabalha no caso.
+model CaseAssignment {
+  id        String   @id @default(uuid())
+  caseId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, userId])
+  @@map("case_assignments")
 }
 
 model Party {

@@ -45,7 +45,6 @@ const typeLabels: Record<DocumentItem['type'], string> = {
 
 const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024;
 
-const apiRoot = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/api\/?$/, '');
 
 const isPdfFile = (file: File) => {
   const extensionOk = file.name.toLowerCase().endsWith('.pdf');
@@ -147,10 +146,20 @@ export default function Documents() {
     }
   };
 
-  const handleDownload = (filePath: string, fileName: string) => {
-    const fileUrl = `${apiRoot}${filePath}`;
-    window.open(fileUrl, '_blank', 'noopener,noreferrer');
-    toast.success(`Abrindo ${fileName}`);
+  const handleDownload = async (id: string, fileName: string) => {
+    try {
+      const response = await api.get(`/documents/${id}/download`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error('Erro ao baixar o documento');
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,6 +202,7 @@ export default function Documents() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-dark-900 dark:text-gray-100">Documentos</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-1">Upload funcional com validação PDF obrigatória</p>
         </div>
         <button
           onClick={() => setIsUploadModalOpen(true)}
@@ -262,7 +272,7 @@ export default function Documents() {
 
                   <div className="mt-3 flex gap-3">
                     <button
-                      onClick={() => handleDownload(doc.filePath, doc.fileName)}
+                      onClick={() => handleDownload(doc.id, doc.fileName)}
                       className="text-xs text-primary-600 hover:text-primary-700 inline-flex items-center gap-1"
                     >
                       <ArrowDownTrayIcon className="h-4 w-4" />
