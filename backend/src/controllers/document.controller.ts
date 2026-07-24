@@ -5,6 +5,8 @@ import { AppError } from '../middleware/errorHandler';
 import fs from 'fs';
 import path from 'path';
 import { notifyUser } from '../services/notification.service';
+import { getAccessibleCaseIds } from '../utils/caseAccess';
+import { isRealPdf } from '../utils/fileSignature';
 
 export const getDocuments = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -13,7 +15,16 @@ export const getDocuments = async (req: AuthRequest, res: Response, next: NextFu
 
     const where: any = {};
     if (type) where.type = type;
-    if (caseId) where.caseId = caseId;
+
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null) {
+      if (caseId && !accessibleCaseIds.includes(caseId as string)) {
+        return res.json({ status: 'success', data: [] });
+      }
+      where.caseId = caseId ? caseId : { in: accessibleCaseIds };
+    } else if (caseId) {
+      where.caseId = caseId;
+    }
 
     const documents = await prisma.document.findMany({
       where,
@@ -37,6 +48,31 @@ export const getDocuments = async (req: AuthRequest, res: Response, next: NextFu
     });
 
     res.json({ status: 'success', data: documents });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const downloadDocument = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const document = await prisma.document.findUnique({ where: { id } });
+    if (!document) {
+      throw new AppError('Documento não encontrado', 404);
+    }
+
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null && (!document.caseId || !accessibleCaseIds.includes(document.caseId))) {
+      throw new AppError('Você não tem acesso a este documento', 403);
+    }
+
+    const absolutePath = path.join(__dirname, '../..', document.filePath);
+    if (!fs.existsSync(absolutePath)) {
+      throw new AppError('Arquivo não encontrado no servidor', 404);
+    }
+
+    res.download(absolutePath, document.fileName);
   } catch (error) {
     next(error);
   }
@@ -70,6 +106,11 @@ export const getDocument = async (req: AuthRequest, res: Response, next: NextFun
       throw new AppError('Documento não encontrado', 404);
     }
 
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null && (!document.caseId || !accessibleCaseIds.includes(document.caseId))) {
+      throw new AppError('Você não tem acesso a este documento', 403);
+    }
+
     res.json({ status: 'success', data: document });
   } catch (error) {
     next(error);
@@ -80,6 +121,12 @@ export const uploadDocument = async (req: AuthRequest, res: Response, next: Next
   try {
     if (!req.file) {
       throw new AppError('Nenhum arquivo foi enviado', 400);
+    }
+
+    // Nunca confiar só na extensão/Content-Type: confere a assinatura real do arquivo
+    if (!isRealPdf(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+      throw new AppError('O arquivo enviado não é um PDF válido', 400);
     }
 
     const { title, description, type, caseId } = req.body;

@@ -6,6 +6,8 @@ import { AuthRequest } from '../middleware/auth';
 import { createAuditLog } from '../utils/audit';
 import { notifySocios, notifyUser } from '../services/notification.service';
 import { validatePasswordStrength } from '../utils/passwordPolicy';
+import { isRealImage } from '../utils/fileSignature';
+import fs from 'fs';
 
 // Get all users
 export const getUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -226,14 +228,23 @@ export const uploadProfileImage = async (req: AuthRequest, res: Response, next: 
       throw new AppError('Nenhuma imagem foi enviada', 400);
     }
 
+    // Nunca confiar só na extensão/Content-Type: confere a assinatura real do arquivo
+    if (!isRealImage(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+      throw new AppError('O arquivo enviado não é uma imagem válida', 400);
+    }
+
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) {
       throw new AppError('Usuário não encontrado', 404);
     }
 
+    if (req.user!.id !== id && req.user!.role !== 'SOCIO') {
+      throw new AppError('Você não tem permissão para alterar a foto deste usuário', 403);
+    }
+
     // Delete old profile image if exists
     if (existingUser.profileImage) {
-      const fs = require('fs');
       const path = require('path');
       const oldImagePath = path.join(__dirname, '../../uploads/profiles', path.basename(existingUser.profileImage));
       if (fs.existsSync(oldImagePath)) {
