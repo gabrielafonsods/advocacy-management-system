@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middleware/errorHandler';
+import { sanitizeBody } from './middleware/sanitize';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -43,9 +44,10 @@ app.use('/api/', limiter);
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(sanitizeBody);
 
 // Static files (não funciona bem na Vercel, mas mantém para desenvolvimento)
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads/profiles', express.static('uploads/profiles'));
 
 // Routes
 app.use('/api/auth', authRoutes);
