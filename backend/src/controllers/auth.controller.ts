@@ -11,16 +11,29 @@ import { validatePasswordStrength } from '../utils/passwordPolicy';
 import { createAuditLog } from '../utils/audit';
 
 // Gerar tokens JWT
-const generateTokens = (userId: string, email: string, role: string) => {
-  const payload = { id: userId, email, role };
+const JWT_ISSUER = 'manuadv-api';
+const JWT_AUDIENCE = 'manuadv-app';
+
+const generateTokens = (userId: string, email: string, role: string, tokenVersion: number) => {
+  const payload = { id: userId, email, role, tokenVersion };
   const secret = process.env.JWT_SECRET as string;
   const refreshSecret = process.env.JWT_REFRESH_SECRET as string;
   
   // @ts-ignore - Issue with jsonwebtoken types
-  const accessToken = jwt.sign(payload, secret, { expiresIn: '15m', algorithm: 'HS256' });
+  const accessToken = jwt.sign(payload, secret, {
+    expiresIn: '15m',
+    algorithm: 'HS256',
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+  });
   
   // @ts-ignore - Issue with jsonwebtoken types
-  const refreshToken = jwt.sign(payload, refreshSecret, { expiresIn: '7d', algorithm: 'HS256' });
+  const refreshToken = jwt.sign(payload, refreshSecret, {
+    expiresIn: '7d',
+    algorithm: 'HS256',
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+  });
 
   return { accessToken, refreshToken };
 };
@@ -124,7 +137,7 @@ export const login = async (req: AuthRequest, res: Response, next: NextFunction)
     }
 
     // Gerar tokens
-    const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role);
+    const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.role, user.tokenVersion);
 
     // Salvar refresh token
     const expiresAt = new Date();
@@ -186,14 +199,24 @@ export const refreshToken = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     // Verificar o token JWT
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!, { algorithms: ['HS256'] }) as {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!, {
+      algorithms: ['HS256'],
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    }) as {
       id: string;
       email: string;
       role: string;
     };
 
+    const currentUser = await prisma.user.findUnique({ where: { id: decoded.id } });
+    if (!currentUser || !currentUser.isActive) {
+      await prisma.refreshToken.delete({ where: { token: refreshToken } }).catch(() => {});
+      throw new AppError('Usuário inativo ou não encontrado', 401);
+    }
+
     // Gerar novos tokens
-    const tokens = generateTokens(decoded.id, decoded.email, decoded.role);
+    const tokens = generateTokens(currentUser.id, currentUser.email, currentUser.role, currentUser.tokenVersion);
 
     // Deletar token antigo e criar novo
     await prisma.refreshToken.delete({ where: { token: refreshToken } });
@@ -228,6 +251,13 @@ export const logout = async (req: AuthRequest, res: Response, next: NextFunction
         where: { token: refreshToken }
       });
     }
+
+    // Invalida imediatamente qualquer token de acesso ainda válido (em vez
+    // de esperar os até 15 minutos de expiração natural dele)
+    await prisma.user.update({
+      where: { id: req.user!.id },
+      data: { tokenVersion: { increment: 1 } },
+    });
 
     // Log de auditoria
     await createAuditLog('LOGOUT', 'User', req.user!.id, req.user!.id, req.ip, req.get('user-agent'));

@@ -26,6 +26,15 @@ dotenv.config();
 
 const app: Application = express();
 
+// Em produção, força HTTPS — a maioria dos provedores (Vercel, etc.) já
+// entrega em HTTPS e repassa isso no header x-forwarded-proto.
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] === 'http') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
 // Security middleware
 app.use(helmet());
 app.use(cors({

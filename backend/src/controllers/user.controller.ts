@@ -136,6 +136,7 @@ export const updateUser = async (req: AuthRequest, res: Response, next: NextFunc
 
     if (password) {
       updateData.password = await bcrypt.hash(password, 12);
+      updateData.tokenVersion = { increment: 1 };
     }
 
     const user = await prisma.user.update({
