@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../middleware/auth';
 import {
   getDocuments,
   getDocument,
+  downloadDocument,
   uploadDocument,
   updateDocument,
   deleteDocument
@@ -14,6 +15,7 @@ router.use(authenticate);
 
 router.get('/', getDocuments);
 router.get('/:id', getDocument);
+router.get('/:id/download', downloadDocument);
 router.post('/', documentUpload.single('file'), uploadDocument);
 router.put('/:id', updateDocument);
 router.delete('/:id', authorize('SOCIO', 'ADVOGADO'), deleteDocument);

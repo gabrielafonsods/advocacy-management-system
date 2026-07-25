@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { errorHandler } from './middleware/errorHandler';
 import { sanitizeBody } from './middleware/sanitize';
+import { logger } from './utils/logger';
 
 // Routes
 import authRoutes from './routes/auth.routes';
@@ -37,8 +38,28 @@ app.use((req, res, next) => {
 
 // Security middleware
 app.use(helmet());
+
+// CORS: só os domínios explicitamente permitidos podem consumir a API.
+// Nunca cai num "libera tudo" por padrão — se CORS_ORIGIN não estiver
+// configurado, só libera localhost (dev). Aceita uma lista separada por
+// vírgula (ex: "https://manuadv.com,https://www.manuadv.com").
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (origin, callback) => {
+    // Requisições sem origem (ex: chamadas server-to-server, curl, apps
+    // mobile) não têm cabeçalho Origin — deixamos passar, pois CORS é uma
+    // proteção de navegador, não uma autenticação.
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      logger.warn(`🚫 CORS bloqueou origem não autorizada: ${origin}`);
+      callback(new Error('Não permitido pelo CORS'));
+    }
+  },
   credentials: true
 }));
 

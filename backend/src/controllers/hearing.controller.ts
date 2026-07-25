@@ -3,10 +3,18 @@ import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { notifyUser } from '../services/notification.service';
+import { getAccessibleCaseIds } from '../utils/caseAccess';
 
 export const getHearings = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    const where: any = {};
+    if (accessibleCaseIds !== null) {
+      where.caseId = { in: accessibleCaseIds };
+    }
+
     const hearings = await prisma.hearing.findMany({
+      where,
       include: {
         case: {
           select: {
@@ -35,6 +43,11 @@ export const getHearing = async (req: AuthRequest, res: Response, next: NextFunc
 
     if (!hearing) {
       throw new AppError('Audiência não encontrada', 404);
+    }
+
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null && (!hearing.caseId || !accessibleCaseIds.includes(hearing.caseId))) {
+      throw new AppError('Você não tem acesso a esta audiência', 403);
     }
 
     res.json({ status: 'success', data: hearing });

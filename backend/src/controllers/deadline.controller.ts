@@ -3,6 +3,7 @@ import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { createAuditLog } from '../utils/audit';
+import { getAccessibleCaseIds } from '../utils/caseAccess';
 
 // Get all deadlines
 export const getDeadlines = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -13,6 +14,14 @@ export const getDeadlines = async (req: AuthRequest, res: Response, next: NextFu
     const where: any = {};
     if (caseId) where.caseId = caseId;
     if (priority) where.priority = priority;
+
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null) {
+      if (caseId && !accessibleCaseIds.includes(caseId as string)) {
+        return res.json({ status: 'success', data: { deadlines: [], pagination: { total: 0, page: 1, limit: parseInt(limit as string), pages: 0 } } });
+      }
+      where.caseId = caseId ? caseId : { in: accessibleCaseIds };
+    }
 
     const [deadlines, total] = await Promise.all([
       prisma.deadline.findMany({
@@ -64,6 +73,11 @@ export const getDeadline = async (req: AuthRequest, res: Response, next: NextFun
 
     if (!deadline) {
       throw new AppError('Prazo não encontrado', 404);
+    }
+
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null && (!deadline.caseId || !accessibleCaseIds.includes(deadline.caseId))) {
+      throw new AppError('Você não tem acesso a este prazo', 403);
     }
 
     res.json({ status: 'success', data: deadline });

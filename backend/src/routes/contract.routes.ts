@@ -12,9 +12,9 @@ import {
 const router = Router();
 router.use(authenticate);
 
-router.get('/', getContracts);
-router.get('/:id', getContract);
-router.get('/:id/pdf', downloadContractPdf);
+router.get('/', authorize('SOCIO', 'ADVOGADO', 'ADMINISTRATIVO'), getContracts);
+router.get('/:id', authorize('SOCIO', 'ADVOGADO', 'ADMINISTRATIVO'), getContract);
+router.get('/:id/pdf', authorize('SOCIO', 'ADVOGADO', 'ADMINISTRATIVO'), downloadContractPdf);
 router.post('/', authorize('SOCIO', 'ADVOGADO', 'ADMINISTRATIVO'), createContract);
 router.put('/:id', authorize('SOCIO', 'ADVOGADO', 'ADMINISTRATIVO'), updateContract);
 router.delete('/:id', authorize('SOCIO', 'ADVOGADO'), deleteContract);

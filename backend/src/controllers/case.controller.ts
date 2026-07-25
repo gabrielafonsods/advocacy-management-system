@@ -3,6 +3,7 @@ import prisma from '../config/database';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/auth';
 import { notifySocios, notifyUser } from '../services/notification.service';
+import { getAccessibleCaseIds } from '../utils/caseAccess';
 
 export const getCases = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -14,6 +15,11 @@ export const getCases = async (req: AuthRequest, res: Response, next: NextFuncti
     const where: any = {};
     if (status) where.status = status;
     if (type) where.type = type;
+
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null) {
+      where.id = { in: accessibleCaseIds };
+    }
 
     const [cases, total] = await Promise.all([
       prisma.case.findMany({ where, skip, take: limitNum, orderBy: { createdAt: 'desc' }, include: { client: true, responsible: { select: { id: true, name: true } } } }),
@@ -28,6 +34,11 @@ export const getCases = async (req: AuthRequest, res: Response, next: NextFuncti
 
 export const getCase = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null && !accessibleCaseIds.includes(req.params.id)) {
+      throw new AppError('Você não tem acesso a este processo', 403);
+    }
+
     const caseData = await prisma.case.findUnique({ where: { id: req.params.id }, include: { client: true, responsible: true, parties: true, deadlines: true, hearings: true, documents: true, notes: { include: { author: { select: { id: true, name: true } } } }, fees: true } });
     if (!caseData) throw new AppError('Processo não encontrado', 404);
     res.json({ status: 'success', data: { case: caseData } });
@@ -64,6 +75,11 @@ export const createCase = async (req: AuthRequest, res: Response, next: NextFunc
 
 export const updateCase = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    const accessibleCaseIds = await getAccessibleCaseIds(req.user!);
+    if (accessibleCaseIds !== null && !accessibleCaseIds.includes(req.params.id)) {
+      throw new AppError('Você não tem acesso a este processo', 403);
+    }
+
     const previousCase = await prisma.case.findUnique({ where: { id: req.params.id } });
     const caseData = await prisma.case.update({ where: { id: req.params.id }, data: req.body });
 
