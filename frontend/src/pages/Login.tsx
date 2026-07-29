@@ -44,8 +44,8 @@ export default function Login() {
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full mx-auto space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold brand-gradient">ManuADV Jurídico</h1>
-          <p className="mt-2 text-gray-300">Gestão advocatícia</p>
+          <h1 className="text-4xl font-bold brand-gradient">GA Systems</h1>
+          <p className="mt-2 text-gray-300">Sistema de Advocacia</p>
         </div>
 
         <form
@@ -111,7 +111,7 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="text-center text-gray-300 text-sm">&copy; 2026 ManuADV Juridico. Desenvolvido por GA Systems.</p>
+        <p className="text-center text-gray-300 text-sm">&copy; 2026 Desenvolvido por GA Systems. Todos os direitos reservados.</p>
       </div>
     </div>
   );
