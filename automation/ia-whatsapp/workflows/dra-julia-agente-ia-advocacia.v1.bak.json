@@ -1,0 +1,1053 @@
+{
+  "name": "Dra. Júlia - Agente IA Advocacia",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dra-julia-advocacia",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-whatsapp-julia",
+      "name": "Webhook WhatsApp Dra. Júlia",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "dra-julia-advocacia-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.entry?.[0]?.changes?.[0]?.value?.messages?.[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "filtro-mensagem-valida-julia",
+      "name": "Filtro Mensagem Válida",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrair dados da mensagem jurídica do WhatsApp\nconst entry = $input.all()[0].json.entry?.[0];\nconst change = entry?.changes?.[0];\nconst message = change?.value?.messages?.[0];\nconst contact = change?.value?.contacts?.[0];\n\nconst phoneNumber = message?.from;\nconst contactName = contact?.profile?.name || 'Cliente';\nconst messageId = message?.id;\nconst timestamp = message?.timestamp;\n\n// Verificar tipo de mensagem\nconst messageType = message?.type;\nlet messageContent = '';\nlet mediaUrl = '';\nlet mediaType = '';\n\nif (messageType === 'text') {\n  messageContent = message?.text?.body || '';\n} else if (messageType === 'audio') {\n  mediaUrl = message?.audio?.id;\n  mediaType = 'audio';\n  messageContent = '[Áudio recebido - Consulta jurídica]';\n} else if (messageType === 'image') {\n  mediaUrl = message?.image?.id;\n  mediaType = 'image';\n  messageContent = message?.image?.caption || '[Documento jurídico recebido]';\n} else if (messageType === 'document') {\n  mediaUrl = message?.document?.id;\n  mediaType = 'document';\n  messageContent = message?.document?.caption || '[Documento jurídico anexado]';\n}\n\n// Verificar se é uma mensagem válida\nif (!phoneNumber) {\n  return [{\n    json: {\n      error: 'Mensagem inválida - sem telefone',\n      phoneNumber,\n      messageContent\n    }\n  }];\n}\n\n// Preparar dados para processamento jurídico\nreturn [{\n  json: {\n    phoneNumber: phoneNumber,\n    contactName: contactName,\n    messageId: messageId,\n    timestamp: timestamp,\n    messageType: messageType,\n    messageContent: messageContent,\n    mediaUrl: mediaUrl,\n    mediaType: mediaType,\n    processedAt: new Date().toISOString(),\n    platform: 'whatsapp-dra-julia'\n  }\n}];"
+      },
+      "id": "processar-mensagem-julia",
+      "name": "Processar Mensagem Jurídica",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "SEU_GOOGLE_SHEETS_ID_ADVOCACIA",
+        "sheetName": "Clientes_Dra_Julia",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nome": "={{ $json.contactName }}",
+            "Telefone": "={{ $json.phoneNumber }}",
+            "Data_Contato": "={{ $json.processedAt }}",
+            "Tipo_Mensagem": "={{ $json.messageType }}",
+            "Conteudo": "={{ $json.messageContent }}",
+            "Media_URL": "={{ $json.mediaUrl }}",
+            "Area_Juridica": "A definir",
+            "Status": "Primeiro contato",
+            "Plataforma": "WhatsApp Dra. Júlia"
+          }
+        },
+        "options": {}
+      },
+      "id": "salvar-cliente-sheets-julia",
+      "name": "Salvar Cliente Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        900,
+        160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.messageType }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "verificar-audio-julia",
+      "name": "Verificar se é Áudio",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v17.0/{{ $json.mediaUrl }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer SEU_WHATSAPP_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "baixar-audio-whatsapp-julia",
+      "name": "Baixar Áudio WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1120,
+        240
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-api-token",
+          "name": "WhatsApp API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "transcribe",
+        "options": {
+          "language": "pt",
+          "prompt": "Transcreva este áudio sobre questões jurídicas, processos, contratos ou consultas de advocacia.",
+          "temperature": 0.1
+        }
+      },
+      "id": "transcrever-audio-whisper-julia",
+      "name": "Transcrever Áudio Jurídico",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        240
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.messageType }}",
+              "rightValue": "image|document",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "verificar-documento-julia",
+      "name": "Verificar se é Documento",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        900,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v17.0/{{ $json.mediaUrl }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer SEU_WHATSAPP_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "baixar-documento-whatsapp-julia",
+      "name": "Baixar Documento WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1120,
+        440
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-api-token",
+          "name": "WhatsApp API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4-vision-preview",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é Dra. Júlia, especialista em análise de documentos jurídicos via IA. Analise o documento enviado e identifique:\n\n**TIPOS DE DOCUMENTOS JURÍDICOS:**\n1. CONTRATOS (compra/venda, trabalho, locação, etc.)\n2. PROCESSOS JUDICIAIS (petições, sentenças, decisões)\n3. CERTIDÕES (nascimento, casamento, óbito, etc.)\n4. DOCUMENTOS PESSOAIS (RG, CPF, CNH, etc.)\n5. DOCUMENTOS EMPRESARIAIS (CNPJ, contrato social, etc.)\n6. DOCUMENTOS IMOBILIÁRIOS (escrituras, registros, etc.)\n\n**ANÁLISE DETALHADA:**\n- Tipo exato do documento\n- Partes envolvidas (nomes, qualificações)\n- Data de emissão/assinatura\n- Objeto principal do documento\n- Cláusulas importantes ou irregularidades\n- Prazos relevantes ou datas críticas\n- Possíveis questões jurídicas identificadas\n- Recomendações ou alertas legais\n\n**AVALIAÇÃO JURÍDICA:**\n- Documento válido/inválido\n- Riscos identificados\n- Necessidade de ação jurídica\n- Documentos complementares necessários\n\nSeja detalhista, precisa e use linguagem jurídica apropriada. Identifique potenciais problemas legais e sugira próximos passos."
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Analise este documento jurídico:"
+                },
+                {
+                  "type": "image_url",
+                  "image_url": {
+                    "url": "{{ $json.url }}"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.2,
+          "maxTokens": 1000
+        }
+      },
+      "id": "analisar-documento-gpt-vision-julia",
+      "name": "Analisar Documento Jurídico",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        440
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é Dra. Júlia, uma advogada virtual especializada em múltiplas áreas do direito. Sua missão é prestar consultoria jurídica de excelência via WhatsApp. ⚖️👩‍💼\n\n**ÁREAS DE ESPECIALIZAÇÃO:**\n🏢 **DIREITO EMPRESARIAL:** Contratos, sociedades, compliance\n🏠 **DIREITO CIVIL:** Contratos, responsabilidade civil, família\n👥 **DIREITO TRABALHISTA:** CLT, rescisões, processos trabalhistas\n🏛️ **DIREITO PÚBLICO:** Administrativo, constitucional, tributário\n🔒 **DIREITO CRIMINAL:** Defesa, processos criminais, medidas cautelares\n🏘️ **DIREITO IMOBILIÁRIO:** Compra/venda, locação, usucapião\n👨‍👩‍👧‍👦 **DIREITO DE FAMÍLIA:** Divórcio, pensão, guarda, inventário\n\n**SERVIÇOS OFERECIDOS:**\n✅ Análise de documentos jurídicos\n✅ Elaboração de contratos personalizados\n✅ Consultoria preventiva\n✅ Orientação sobre processos judiciais\n✅ Revisão de documentos legais\n✅ Agendamento de consultas presenciais\n✅ Elaboração de petições simples\n\n**QUANDO IDENTIFICAR NECESSIDADE DE SERVIÇO:**\n- Se cliente solicitar elaboração de documento: GERAR_DOCUMENTO|TIPO|DETALHES\n- Se cliente quiser agendar consulta: AGENDAR_CONSULTA|NOME|TELEFONE|AREA|DATA_PREFERIDA\n- Se cliente precisar de análise urgente: ANALISE_URGENTE|TIPO_CASO|PRAZO\n\n**DIRETRIZES:**\n- Seja profissional, ética e precisa\n- Use linguagem acessível, mas tecnicamente correta\n- Identifique a área jurídica específica de cada caso\n- Oriente sobre prazos e urgências\n- Sugira ações preventivas quando possível\n- Mantenha sigilo e confidencialidade\n- NUNCA dê conselhos que possam configurar exercício ilegal da profissão\n- Sempre recomende consulta presencial para casos complexos\n\n**PERSONALIDADE:**\n- Profissional e confiável\n- Empática com os problemas dos clientes\n- Didática nas explicações\n- Proativa em identificar riscos jurídicos\n\nResponda como Dra. Júlia, sempre focando na melhor solução jurídica para o cliente! ⚖️✨"
+            },
+            {
+              "role": "user",
+              "content": "{{ $json.messageContent || $json.text || 'Preciso de orientação jurídica' }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 800
+        }
+      },
+      "id": "chatgpt-dra-julia-principal",
+      "name": "ChatGPT Dra. Júlia Principal",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [
+        900,
+        580
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Combinar resultados de análise jurídica\nconst dadosOriginais = $('Processar Mensagem Jurídica').item.json;\nlet textoProcessado = '';\nlet analiseDocumento = '';\nlet audioTranscrito = '';\n\n// Verificar se houve transcrição de áudio\nif ($input.all().some(item => item.json.text)) {\n  audioTranscrito = $input.all().find(item => item.json.text)?.json.text || '';\n  textoProcessado = audioTranscrito;\n}\n\n// Verificar se houve análise de documento\nif ($input.all().some(item => item.json.choices)) {\n  const analiseResult = $input.all().find(item => item.json.choices);\n  if (analiseResult) {\n    analiseDocumento = analiseResult.json.choices[0]?.message?.content || '';\n    textoProcessado = analiseDocumento;\n  }\n}\n\n// Se é texto normal, usar o conteúdo original\nif (!textoProcessado && dadosOriginais.messageType === 'text') {\n  textoProcessado = dadosOriginais.messageContent;\n}\n\n// Identificar área jurídica baseada no conteúdo\nlet areaJuridica = 'Geral';\nconst conteudo = textoProcessado.toLowerCase();\n\nif (conteudo.includes('contrato') || conteudo.includes('empresa') || conteudo.includes('cnpj')) {\n  areaJuridica = 'Direito Empresarial';\n} else if (conteudo.includes('trabalho') || conteudo.includes('clt') || conteudo.includes('rescisão')) {\n  areaJuridica = 'Direito Trabalhista';\n} else if (conteudo.includes('família') || conteudo.includes('divórcio') || conteudo.includes('pensão')) {\n  areaJuridica = 'Direito de Família';\n} else if (conteudo.includes('imóvel') || conteudo.includes('casa') || conteudo.includes('terreno')) {\n  areaJuridica = 'Direito Imobiliário';\n} else if (conteudo.includes('processo') || conteudo.includes('tribunal') || conteudo.includes('juiz')) {\n  areaJuridica = 'Direito Processual';\n} else if (conteudo.includes('crime') || conteudo.includes('polícia') || conteudo.includes('prisão')) {\n  areaJuridica = 'Direito Criminal';\n}\n\nreturn [{\n  json: {\n    ...dadosOriginais,\n    textoProcessado: textoProcessado,\n    analiseDocumento: analiseDocumento,\n    audioTranscrito: audioTranscrito,\n    areaJuridica: areaJuridica,\n    temAnalise: !!(analiseDocumento || audioTranscrito)\n  }\n}];"
+      },
+      "id": "combinar-resultados-julia",
+      "name": "Combinar Resultados Jurídicos",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.choices?.[0]?.message?.content }}",
+              "rightValue": "GERAR_DOCUMENTO",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "verificar-gerar-documento",
+      "name": "Verificar Gerar Documento",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processar solicitação de geração de documento\nconst response = $input.all()[0].json.choices?.[0]?.message?.content;\nconst dadosOriginais = $('Combinar Resultados Jurídicos').item.json;\n\nif (response && response.includes('GERAR_DOCUMENTO')) {\n  // Extrair dados do formato: GERAR_DOCUMENTO|TIPO|DETALHES\n  const parts = response.split('|');\n  \n  if (parts.length >= 3) {\n    const tipoDocumento = parts[1].trim();\n    const detalhes = parts[2].trim();\n    \n    return [{\n      json: {\n        ...dadosOriginais,\n        documento: {\n          tipo: tipoDocumento,\n          detalhes: detalhes,\n          solicitadoEm: new Date().toISOString(),\n          status: 'Em elaboração',\n          cliente: dadosOriginais.contactName,\n          telefone: dadosOriginais.phoneNumber\n        },\n        originalResponse: response\n      }\n    }];\n  }\n}\n\nreturn [{\n  json: {\n    ...dadosOriginais,\n    originalResponse: response,\n    isDocumento: false\n  }\n}];"
+      },
+      "id": "processar-gerar-documento",
+      "name": "Processar Gerar Documento",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "operation": "create",
+        "model": "gpt-4",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é Dra. Júlia, especialista em elaboração de documentos jurídicos. Com base na solicitação do cliente, elabore um documento profissional e tecnicamente correto.\n\n**TIPOS DE DOCUMENTOS QUE PODE GERAR:**\n📄 Contratos (compra/venda, prestação de serviços, locação)\n📄 Procurações (específicas e gerais)\n📄 Declarações jurídicas\n📄 Notificações extrajudiciais\n📄 Requerimentos administrativos\n📄 Modelos de petições simples\n📄 Termos de acordo\n📄 Cartas de cobrança\n\n**ESTRUTURA DOS DOCUMENTOS:**\n1. Cabeçalho apropriado\n2. Identificação completa das partes\n3. Corpo do documento com cláusulas/disposições\n4. Disposições finais\n5. Local, data e assinaturas\n\n**DIRETRIZES:**\n- Use linguagem jurídica correta\n- Inclua todas as cláusulas essenciais\n- Preveja situações de inadimplemento/descumprimento\n- Estabeleça prazos e condições claras\n- Inclua foro de eleição quando aplicável\n- Respeite a legislação vigente\n\n**IMPORTANTE:**\n- Sempre inclua aviso de que o documento deve ser revisado por advogado antes da assinatura\n- Adapte o documento às especificações do cliente\n- Use formatação profissional\n\nElabore o documento completo e profissional baseado nos detalhes fornecidos."
+            },
+            {
+              "role": "user",
+              "content": "Gere um documento do tipo: {{ $json.documento.tipo }}\nDetalhes: {{ $json.documento.detalhes }}\nCliente: {{ $json.documento.cliente }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.2,
+          "maxTokens": 1500
+        }
+      },
+      "id": "gerar-documento-juridico",
+      "name": "Gerar Documento Jurídico",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        520
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.choices?.[0]?.message?.content }}",
+              "rightValue": "AGENDAR_CONSULTA",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "verificar-agendar-consulta",
+      "name": "Verificar Agendar Consulta",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processar agendamento de consulta\nconst response = $input.all()[0].json.choices?.[0]?.message?.content;\nconst dadosOriginais = $('Combinar Resultados Jurídicos').item.json;\n\nif (response && response.includes('AGENDAR_CONSULTA')) {\n  // Extrair dados do formato: AGENDAR_CONSULTA|NOME|TELEFONE|AREA|DATA_PREFERIDA\n  const parts = response.split('|');\n  \n  if (parts.length >= 5) {\n    const nome = parts[1].trim();\n    const telefone = parts[2].trim();\n    const area = parts[3].trim();\n    const dataPreferida = parts[4].trim();\n    \n    // Calcular data/hora da consulta (próximo dia útil às 14h como padrão)\n    const agora = new Date();\n    const proximoDiaUtil = new Date(agora);\n    proximoDiaUtil.setDate(proximoDiaUtil.getDate() + 1);\n    proximoDiaUtil.setHours(14, 0, 0, 0);\n    \n    const fimConsulta = new Date(proximoDiaUtil.getTime() + (60 * 60 * 1000)); // 1 hora depois\n    \n    return [{\n      json: {\n        ...dadosOriginais,\n        consulta: {\n          nome: nome,\n          telefone: telefone,\n          area: area,\n          dataPreferida: dataPreferida,\n          dataAgendada: proximoDiaUtil.toISOString(),\n          dataFim: fimConsulta.toISOString(),\n          titulo: `Consulta Jurídica - ${nome} (${area})`,\n          descricao: `Consulta jurídica agendada\\nCliente: ${nome}\\nTelefone: ${telefone}\\nÁrea: ${area}\\nData preferida: ${dataPreferida}\\nStatus: Agendada\\nPlataforma: WhatsApp Dra. Júlia`,\n          status: 'Agendada'\n        },\n        originalResponse: response\n      }\n    }];\n  }\n}\n\nreturn [{\n  json: {\n    ...dadosOriginais,\n    originalResponse: response,\n    isConsulta: false\n  }\n}];"
+      },
+      "id": "processar-agendamento-consulta",
+      "name": "Processar Agendamento Consulta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "calendarId": "primary",
+        "title": "={{ $json.consulta.titulo }}",
+        "description": "={{ $json.consulta.descricao }}",
+        "start": "={{ $json.consulta.dataAgendada }}",
+        "end": "={{ $json.consulta.dataFim }}",
+        "attendees": "",
+        "color": "9",
+        "options": {
+          "sendNotifications": true
+        }
+      },
+      "id": "criar-evento-calendar-consulta",
+      "name": "Criar Evento Calendar Consulta",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        660
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "google-calendar-oauth",
+          "name": "Google Calendar OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "SEU_GOOGLE_SHEETS_ID_ADVOCACIA",
+        "sheetName": "Consultas_Agendadas",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Data_Agendamento": "={{ $json.consulta.dataAgendada }}",
+            "Nome_Cliente": "={{ $json.consulta.nome }}",
+            "Telefone": "={{ $json.consulta.telefone }}",
+            "Area_Juridica": "={{ $json.consulta.area }}",
+            "Data_Preferida": "={{ $json.consulta.dataPreferida }}",
+            "Status": "={{ $json.consulta.status }}",
+            "Observacoes": "Agendada via WhatsApp Dra. Júlia",
+            "Plataforma": "WhatsApp"
+          }
+        },
+        "options": {}
+      },
+      "id": "salvar-consulta-sheets",
+      "name": "Salvar Consulta Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1780,
+        660
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "SEU_GOOGLE_SHEETS_ID_ADVOCACIA",
+        "sheetName": "Documentos_Gerados",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Data_Solicitacao": "={{ $json.documento.solicitadoEm }}",
+            "Tipo_Documento": "={{ $json.documento.tipo }}",
+            "Cliente": "={{ $json.documento.cliente }}",
+            "Telefone": "={{ $json.documento.telefone }}",
+            "Detalhes": "={{ $json.documento.detalhes }}",
+            "Status": "{{ $json.documento.status }}",
+            "Conteudo_Documento": "={{ $json.choices?.[0]?.message?.content }}",
+            "Plataforma": "WhatsApp Dra. Júlia"
+          }
+        },
+        "options": {}
+      },
+      "id": "salvar-documento-sheets",
+      "name": "Salvar Documento Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1780,
+        520
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets-oauth",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v17.0/SEU_PHONE_NUMBER_ID/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "messaging_product",
+              "value": "whatsapp"
+            },
+            {
+              "name": "to",
+              "value": "={{ $('Processar Mensagem Jurídica').item.json.phoneNumber }}"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "text",
+              "value": "{\"body\": \"{{ $json.choices?.[0]?.message?.content || $json.originalResponse || 'Olá! Sou a Dra. Júlia, sua advogada virtual. Como posso ajudá-lo(a) com questões jurídicas hoje? ⚖️👩‍💼' }}\"}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "enviar-resposta-whatsapp-julia",
+      "name": "Enviar Resposta WhatsApp Dra. Júlia",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1340,
+        800
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-api-token",
+          "name": "WhatsApp API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK"
+      },
+      "id": "response-webhook-julia",
+      "name": "Response Webhook Dra. Júlia",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "cron-lembretes-consultas",
+      "name": "Cron Lembretes Consultas (9h)",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        240,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendarId": "primary",
+        "returnAll": false,
+        "limit": 20,
+        "options": {
+          "timeMin": "={{ new Date().toISOString() }}",
+          "timeMax": "={{ new Date(Date.now() + 24*60*60*1000).toISOString() }}",
+          "q": "Consulta Jurídica"
+        }
+      },
+      "id": "buscar-consultas-hoje",
+      "name": "Buscar Consultas Hoje",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [
+        460,
+        900
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "google-calendar-oauth",
+          "name": "Google Calendar OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filtrar consultas jurídicas para hoje\nconst hoje = new Date();\nhoje.setHours(0, 0, 0, 0);\nconst amanha = new Date(hoje);\namanha.setDate(amanha.getDate() + 1);\n\nconst eventos = $input.all()[0].json;\nconst consultasHoje = [];\n\nif (eventos && Array.isArray(eventos)) {\n  eventos.forEach(evento => {\n    if (evento.start) {\n      const dataConsulta = new Date(evento.start.dateTime || evento.start.date);\n      dataConsulta.setHours(0, 0, 0, 0);\n      \n      // Se a consulta é para hoje\n      if (dataConsulta.getTime() === hoje.getTime()) {\n        // Extrair telefone da descrição\n        const descricao = evento.description || '';\n        const telefoneMatch = descricao.match(/Telefone: ([+\\d\\s\\-\\(\\)]+)/);\n        \n        if (telefoneMatch) {\n          consultasHoje.push({\n            titulo: evento.summary,\n            inicio: evento.start.dateTime || evento.start.date,\n            telefone: telefoneMatch[1].trim(),\n            descricao: descricao\n          });\n        }\n      }\n    }\n  });\n}\n\nreturn consultasHoje.map(consulta => ({ json: consulta }));"
+      },
+      "id": "filtrar-consultas-hoje",
+      "name": "Filtrar Consultas Hoje",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v17.0/SEU_PHONE_NUMBER_ID/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "messaging_product",
+              "value": "whatsapp"
+            },
+            {
+              "name": "to",
+              "value": "={{ $json.telefone }}"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "text",
+              "value": "{\"body\": \"⚖️ Bom dia! Sou a Dra. Júlia.\\n\\n📅 Lembrete da sua consulta jurídica HOJE:\\n\\n{{ $json.titulo }}\\n🕐 Horário: {{ new Date($json.inicio).toLocaleString('pt-BR') }}\\n\\n📋 Para otimizar nosso tempo, tenha em mãos:\\n• Documentos relacionados ao caso\\n• Lista de dúvidas específicas\\n• RG e CPF\\n\\n📞 Em caso de impossibilidade de comparecer, entre em contato para reagendamento.\\n\\n👩‍💼 Aguardo você para nossa consulta!\\n\\nDra. Júlia\"}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "enviar-lembrete-consulta",
+      "name": "Enviar Lembrete Consulta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        900,
+        900
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "whatsapp-api-token",
+          "name": "WhatsApp API Token"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook WhatsApp Dra. Júlia": {
+      "main": [
+        [
+          {
+            "node": "Filtro Mensagem Válida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtro Mensagem Válida": {
+      "main": [
+        [
+          {
+            "node": "Processar Mensagem Jurídica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Mensagem Jurídica": {
+      "main": [
+        [
+          {
+            "node": "Salvar Cliente Sheets",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Verificar se é Áudio",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Verificar se é Documento",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ChatGPT Dra. Júlia Principal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar se é Áudio": {
+      "main": [
+        [
+          {
+            "node": "Baixar Áudio WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Combinar Resultados Jurídicos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixar Áudio WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Transcrever Áudio Jurídico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcrever Áudio Jurídico": {
+      "main": [
+        [
+          {
+            "node": "Combinar Resultados Jurídicos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar se é Documento": {
+      "main": [
+        [
+          {
+            "node": "Baixar Documento WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Combinar Resultados Jurídicos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixar Documento WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Analisar Documento Jurídico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analisar Documento Jurídico": {
+      "main": [
+        [
+          {
+            "node": "Combinar Resultados Jurídicos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT Dra. Júlia Principal": {
+      "main": [
+        [
+          {
+            "node": "Verificar Gerar Documento",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Verificar Agendar Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combinar Resultados Jurídicos": {
+      "main": [
+        [
+          {
+            "node": "ChatGPT Dra. Júlia Principal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Gerar Documento": {
+      "main": [
+        [
+          {
+            "node": "Processar Gerar Documento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Resposta WhatsApp Dra. Júlia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Gerar Documento": {
+      "main": [
+        [
+          {
+            "node": "Gerar Documento Jurídico",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Enviar Resposta WhatsApp Dra. Júlia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Documento Jurídico": {
+      "main": [
+        [
+          {
+            "node": "Salvar Documento Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Agendar Consulta": {
+      "main": [
+        [
+          {
+            "node": "Processar Agendamento Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar Resposta WhatsApp Dra. Júlia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Agendamento Consulta": {
+      "main": [
+        [
+          {
+            "node": "Criar Evento Calendar Consulta",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Enviar Resposta WhatsApp Dra. Júlia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Criar Evento Calendar Consulta": {
+      "main": [
+        [
+          {
+            "node": "Salvar Consulta Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Resposta WhatsApp Dra. Júlia": {
+      "main": [
+        [
+          {
+            "node": "Response Webhook Dra. Júlia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cron Lembretes Consultas (9h)": {
+      "main": [
+        [
+          {
+            "node": "Buscar Consultas Hoje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Consultas Hoje": {
+      "main": [
+        [
+          {
+            "node": "Filtrar Consultas Hoje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar Consultas Hoje": {
+      "main": [
+        [
+          {
+            "node": "Enviar Lembrete Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "America/Sao_Paulo"
+  },
+  "staticData": null,
+  "tags": ["advocacia", "juridico", "ia", "whatsapp", "documentos"],
+  "triggerCount": 0,
+  "updatedAt": "2024-10-04T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
